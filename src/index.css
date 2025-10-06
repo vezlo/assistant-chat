@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease forwards;
+}
+
+/* Custom scrollbar for messages */
+.vezlo-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.vezlo-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vezlo-messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.vezlo-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Remove global transition - let components define their own */
+/* Enhanced button hover effects - removed since buttons define their own transitions */

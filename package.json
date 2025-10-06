@@ -1,0 +1,85 @@
+{
+  "name": "@vezlo/assistant-chat",
+  "version": "1.0.0",
+  "description": "Embeddable AI chatbot widget with RAG-powered knowledge base and real-time conversation",
+  "type": "module",
+  "main": "dist/index.html",
+  "files": [
+    "dist",
+    "public/widget.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview --port 3000 --host 0.0.0.0",
+    "clean": "rm -rf dist",
+    "start": "npm run preview",
+    "vercel-build": "npm run build"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.3",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "^24.6.2",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "postcss": "^8.5.6",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7"
+  },
+  "keywords": [
+    "ai-chatbot",
+    "chat-widget",
+    "chatbot",
+    "knowledge-base",
+    "rag",
+    "vector-search",
+    "embeddings",
+    "conversational-ai",
+    "llm",
+    "ai-assistant",
+    "saas-bot",
+    "customer-support",
+    "react-widget",
+    "embeddable-chat",
+    "semantic-search",
+    "ai-sdk",
+    "openai",
+    "supabase",
+    "pgvector",
+    "typescript"
+  ],
+  "author": "Vezlo",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vezlo/assistant-chat.git"
+  },
+  "homepage": "https://github.com/vezlo/assistant-chat#readme",
+  "bugs": {
+    "url": "https://github.com/vezlo/assistant-chat/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  }
+}

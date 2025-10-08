@@ -250,4 +250,4 @@ This project is dual-licensed:
 
 ---
 
-Made with ❤️ by The Vezlo team
+Made with Love by [Vezlo](https://www.vezlo.org/)

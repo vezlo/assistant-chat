@@ -1,5 +1,7 @@
 # Vezlo Assistant Chat
 
+[![npm version](https://img.shields.io/npm/v/@vezlo/assistant-chat.svg)](https://www.npmjs.com/package/@vezlo/assistant-chat) [![license](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
+
 A complete chat widget solution with both a React component library and standalone admin application for AI-powered customer support.
 
 ## What's Included

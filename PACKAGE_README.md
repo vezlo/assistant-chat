@@ -1,5 +1,7 @@
 # Vezlo Assistant Chat Widget - NPM Package
 
+[![npm version](https://img.shields.io/npm/v/@vezlo/assistant-chat.svg)](https://www.npmjs.com/package/@vezlo/assistant-chat) [![license](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
+
 A React component library for integrating AI assistant chat functionality into web applications.
 
 > **📦 This is the NPM package documentation**  

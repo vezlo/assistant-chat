@@ -54,6 +54,22 @@ The `WidgetConfig` interface includes:
 - `size`: Widget dimensions
 - `defaultOpen`: Whether widget opens by default
 
+### Configuration Options Table
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `uuid` | string | Required | Unique identifier for the widget |
+| `title` | string | `'AI Assistant'` | Widget header title |
+| `subtitle` | string | `'How can I help you today?'` | Widget header subtitle |
+| `placeholder` | string | `'Type your message...'` | Input placeholder text |
+| `welcomeMessage` | string | `'Hello! I\'m your AI assistant...'` | Initial message shown to users |
+| `themeColor` | string | `'#059669'` | Primary color for the widget |
+| `position` | string | `'bottom-right'` | Position: `bottom-right`, `bottom-left`, `top-right`, `top-left` |
+| `size` | object | `{ width: 420, height: 600 }` | Widget dimensions |
+| `defaultOpen` | boolean | `false` | Whether widget opens by default |
+| `apiUrl` | string | Required | Assistant Server API URL |
+| `apiKey` | string | Required | API key for authentication |
+
 ## API Integration
 
 This widget requires a running Assistant Server instance. The widget will:
@@ -68,6 +84,8 @@ Configure your Assistant Server URL in your application:
 // The widget uses the API services included in this package
 import { createConversation, createUserMessage, generateAIResponse } from '@vezlo/assistant-chat';
 ```
+
+For detailed API integration documentation, see [API Integration Guide](docs/API_INTEGRATION.md).
 
 ## Knowledge Base Integration
 

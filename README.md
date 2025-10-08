@@ -184,6 +184,10 @@ src-to-kb /path/to/your/codebase --output ./knowledge-base
 
 The Assistant Server will automatically use this knowledge base to provide intelligent answers about your codebase.
 
+## API Integration
+
+For detailed API integration documentation, see [API Integration Guide](docs/API_INTEGRATION.md).
+
 ## Related Projects
 
 - [@vezlo/assistant-server](https://www.npmjs.com/package/@vezlo/assistant-server) - Backend API server

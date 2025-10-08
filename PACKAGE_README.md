@@ -1,0 +1,235 @@
+# Vezlo Assistant Chat Widget - NPM Package
+
+A React component library for integrating AI assistant chat functionality into web applications.
+
+> **📦 This is the NPM package documentation**  
+> **🏠 Repository**: [assistant-chat](https://github.com/vezlo/assistant-chat) - Contains both this NPM package and a standalone admin application  
+> **🖥️ Standalone App**: Want to run the admin dashboard? Visit the [main repository](https://github.com/vezlo/assistant-chat) for setup instructions
+
+## Installation
+
+```bash
+npm install @vezlo/assistant-chat
+```
+
+## Requirements
+
+- React 18 or higher
+- Tailwind CSS (for styling)
+- Assistant Server running (see [Assistant Server](https://github.com/vezlo/assistant-server))
+
+## Quick Start
+
+```tsx
+import { Widget } from '@vezlo/assistant-chat';
+
+function App() {
+  const widgetConfig = {
+    uuid: 'your-widget-uuid',
+    title: 'AI Assistant',
+    subtitle: 'How can I help you?',
+    placeholder: 'Type your message...',
+    welcomeMessage: 'Hello! How can I assist you today?',
+    themeColor: '#10b981',
+    position: 'bottom-right',
+    size: { width: 400, height: 600 },
+    defaultOpen: false
+  };
+
+  return <Widget config={widgetConfig} />;
+}
+```
+
+## Configuration
+
+The `WidgetConfig` interface includes:
+
+- `uuid`: Unique identifier for your widget
+- `title`: Header title
+- `subtitle`: Subtitle text
+- `placeholder`: Input placeholder text
+- `welcomeMessage`: Initial message shown to users
+- `themeColor`: Primary color for the widget
+- `position`: Widget position ('bottom-right', 'bottom-left', 'top-right', 'top-left')
+- `size`: Widget dimensions
+- `defaultOpen`: Whether widget opens by default
+
+## API Integration
+
+This widget requires a running Assistant Server instance. The widget will:
+
+1. Create conversations automatically
+2. Send user messages to the server
+3. Stream AI responses in real-time
+
+Configure your Assistant Server URL in your application:
+
+```tsx
+// The widget uses the API services included in this package
+import { createConversation, createUserMessage, generateAIResponse } from '@vezlo/assistant-chat';
+```
+
+## Knowledge Base Integration
+
+To enable AI-powered code analysis and intelligent responses, integrate with [@vezlo/src-to-kb](https://www.npmjs.com/package/@vezlo/src-to-kb):
+
+```bash
+npm install -g @vezlo/src-to-kb
+src-to-kb /path/to/your/codebase --output ./knowledge-base
+```
+
+The Assistant Server will automatically use this knowledge base to provide intelligent answers about your codebase.
+
+## Styling
+
+The widget uses Tailwind CSS classes. Ensure your application has Tailwind CSS configured for proper styling.
+
+## Props
+
+### WidgetProps
+
+- `config`: WidgetConfig - Configuration object
+- `isPlayground?`: boolean - Internal use for playground mode
+- `onOpen?`: () => void - Callback when widget opens
+- `onClose?`: () => void - Callback when widget closes
+- `onMessage?`: (message: ChatMessage) => void - Callback for new messages
+- `onError?`: (error: string) => void - Callback for errors
+- `useShadowRoot?`: boolean - Use Shadow DOM for style isolation
+
+## Examples
+
+### Basic Usage
+
+```tsx
+import { Widget } from '@vezlo/assistant-chat';
+
+function MyApp() {
+  return (
+    <div>
+      <h1>My Website</h1>
+      <Widget config={{
+        uuid: 'my-widget-123',
+        title: 'Support Chat',
+        themeColor: '#3b82f6',
+        position: 'bottom-right',
+        defaultOpen: false
+      }} />
+    </div>
+  );
+}
+```
+
+### With Callbacks
+
+```tsx
+import { Widget, type ChatMessage } from '@vezlo/assistant-chat';
+
+function MyApp() {
+  const handleMessage = (message: ChatMessage) => {
+    console.log('New message:', message);
+  };
+
+  const handleError = (error: string) => {
+    console.error('Widget error:', error);
+  };
+
+  return (
+    <Widget 
+      config={{
+        uuid: 'my-widget-123',
+        title: 'Support Chat',
+        themeColor: '#3b82f6'
+      }}
+      onMessage={handleMessage}
+      onError={handleError}
+    />
+  );
+}
+```
+
+### Shadow DOM for Style Isolation
+
+```tsx
+import { Widget } from '@vezlo/assistant-chat';
+
+function MyApp() {
+  return (
+    <Widget 
+      config={{
+        uuid: 'my-widget-123',
+        title: 'Support Chat',
+        themeColor: '#3b82f6'
+      }}
+      useShadowRoot={true} // Isolates styles from host app
+    />
+  );
+}
+```
+
+## Troubleshooting
+
+### Widget Not Showing
+- Ensure Tailwind CSS is configured in your app
+- Check that the Assistant Server is running
+- Verify the `uuid` is unique
+
+### Style Conflicts
+- Use `useShadowRoot={true}` for style isolation
+- Ensure Tailwind CSS is properly configured
+- Check for conflicting CSS in your host application
+
+### API Errors
+- Verify Assistant Server is running and accessible
+- Check CORS settings on your Assistant Server
+- Ensure the server URL is correct
+
+## Issues & Support
+
+- **Package Issues**: [Assistant Chat Issues](https://github.com/vezlo/assistant-chat/issues)
+- **Server Issues**: [Assistant Server Issues](https://github.com/vezlo/assistant-server/issues)
+- **General Questions**: [Assistant Server Discussions](https://github.com/vezlo/assistant-server/discussions)
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to the branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/vezlo/assistant-chat.git
+cd assistant-chat
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build the package
+npm run build
+```
+
+### Code Style
+
+- Use TypeScript for all new code
+- Follow existing code patterns
+- Add tests for new features
+- Update documentation as needed
+
+## 📄 License
+
+This project is dual-licensed:
+
+- **Non-Commercial Use**: Free under AGPL-3.0 license
+- **Commercial Use**: Requires a commercial license - contact us for details
+
+---
+
+Made with ❤️ by The Vezlo team

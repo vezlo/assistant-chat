@@ -12,13 +12,14 @@ export function ConfigPage() {
     uuid: generateId(),
     theme: 'light',
     position: 'bottom-right',
-    size: { width: 380, height: 600 },
+    size: { width: 420, height: 600 },
     title: 'AI Assistant',
     subtitle: 'Ask me anything',
     placeholder: 'Type your message...',
     welcomeMessage: 'Hello! How can I help you today?',
     apiUrl: 'http://localhost:3000',
     apiKey: '',
+    defaultOpen: false, // Default to closed for embedded widgets
   });
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
@@ -256,15 +257,19 @@ export function ConfigPage() {
                         placeholder: config.placeholder,
                         welcomeMessage: config.welcomeMessage,
                         themeColor: themeColor,
+                        defaultOpen: true, // Always open in playground
                       }))}`}
-                      width="420"
-                      height="600"
+                      width={String((config.size as any)?.width || 420)}
+                      height={String((config.size as any)?.height || 600)}
                       frameBorder="0"
                       style={{
                         border: 'none',
                         outline: 'none',
-                        boxShadow: 'none',
-                        borderRadius: '0'
+                        // Match embed open state visuals
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        background: 'transparent'
                       }}
                     />
                   </div>

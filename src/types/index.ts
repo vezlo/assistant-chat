@@ -15,6 +15,7 @@ export interface WidgetConfig {
   apiUrl: string;
   apiKey: string;
   themeColor?: string;
+  defaultOpen?: boolean; // New parameter to control default open state
 }
 
 export interface ChatMessage {

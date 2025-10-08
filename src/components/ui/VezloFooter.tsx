@@ -1,4 +1,4 @@
-import { THEME } from '@/config/theme';
+import { THEME } from '../../config/theme.js';
 
 interface VezloFooterProps {
   size?: 'sm' | 'md';

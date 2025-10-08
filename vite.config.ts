@@ -16,5 +16,9 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
+  },
+  define: {
+    global: 'globalThis',
+    'process.env': '{}'
   }
 })

@@ -83,38 +83,54 @@
           transformOrigin = 'bottom right';
       }
 
-      // Apply initial styles (sized for bubble with extra space for animations)
+      // Apply initial styles (sized to match widget bubble)
       iframe.style.cssText = `
         position: fixed;
         ${positionStyles}
-        width: 100px;
-        height: 100px;
+        width: 64px;
+        height: 64px;
         border: none;
         background: transparent;
         z-index: 2147483647;
-        transition: all 0.3s ease;
         pointer-events: none;
         transform-origin: ${transformOrigin};
+        border-radius: 50%;
+        overflow: hidden;
       `;
       
-      // Allow interaction with iframe content
+      // Allow interaction with iframe content and suppress inner scrollbars
       iframe.addEventListener('load', function() {
         iframe.style.pointerEvents = 'auto';
+        try {
+          const doc = iframe.contentDocument;
+          if (doc) {
+            doc.documentElement.style.margin = '0';
+            doc.documentElement.style.padding = '0';
+            doc.documentElement.style.overflow = 'hidden';
+            if (doc.body) {
+              doc.body.style.margin = '0';
+              doc.body.style.padding = '0';
+              doc.body.style.overflow = 'hidden';
+            }
+          }
+        } catch (e) {
+          // Cross-origin iframes won't allow access; safe to ignore
+        }
       });
 
       // Listen for messages from iframe to adjust size
       window.addEventListener('message', function(event) {
         if (event.data.type === 'vezlo-widget-opened') {
-          // Widget opened - expand iframe
+          // Widget opened - expand iframe instantly (no animation)
           iframe.style.width = size.width + 'px';
           iframe.style.height = size.height + 'px';
           iframe.style.borderRadius = '16px';
           iframe.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.15)';
         } else if (event.data.type === 'vezlo-widget-closed') {
-          // Widget closed - shrink to bubble
-          iframe.style.width = '100px';
-          iframe.style.height = '100px';
-          iframe.style.borderRadius = '0';
+          // Widget closed - shrink to bubble instantly (no animation)
+          iframe.style.width = '64px';
+          iframe.style.height = '64px';
+          iframe.style.borderRadius = '50%';
           iframe.style.boxShadow = 'none';
         }
       });

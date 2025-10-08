@@ -16,6 +16,7 @@ node_modules
 dist
 dist-ssr
 build
+lib
 
 # Local env files
 .env.local
@@ -48,3 +49,7 @@ build
 .vercel
 **/site-dist
 .turbo
+
+# NPM
+*.tgz
+.npm

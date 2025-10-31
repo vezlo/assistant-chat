@@ -93,7 +93,7 @@ export function Widget({
             title: 'New Chat',
             user_uuid: userUuid,
             company_uuid: companyUuid,
-          });
+          }, config.apiUrl);
 
           setConversationUuid(conversation.uuid);
           console.log('[Widget] Conversation created:', conversation.uuid);
@@ -153,7 +153,7 @@ export function Widget({
       // Step 1: Create user message via API
       const userMessageResponse = await createUserMessage(conversationUuid, {
         content: userMessageContent,
-      });
+      }, config.apiUrl);
 
       console.log('[Widget] User message created:', userMessageResponse.uuid);
 
@@ -166,7 +166,7 @@ export function Widget({
 
       // Step 2: Generate AI response
       // Keep loading indicator visible until AI response is received
-      const aiResponse = await generateAIResponse(userMessageResponse.uuid);
+      const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
 
       console.log('[Widget] AI response received:', aiResponse.uuid);
 

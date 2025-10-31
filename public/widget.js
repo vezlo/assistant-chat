@@ -26,6 +26,7 @@
       }
 
       // Default configuration
+      // Note: apiUrl is NOT set here - it will be read from environment in the widget page
       const defaultConfig = {
         theme: 'light',
         position: 'bottom-right',
@@ -34,7 +35,6 @@
         subtitle: 'How can I help you today?',
         placeholder: 'Type your message...',
         welcomeMessage: "Hello! I'm your AI assistant. How can I help you today?",
-        apiUrl: baseUrl,
         apiKey: '',
         themeColor: '#059669'
       };

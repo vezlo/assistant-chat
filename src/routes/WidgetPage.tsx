@@ -10,6 +10,10 @@ export function WidgetPage() {
   const location = useLocation();
   
   // Default config, can be overridden by URL params
+  // For embed widget: apiUrl comes from environment variable (VITE_ASSISTANT_SERVER_URL)
+  // For NPM package: apiUrl should be provided in config
+  const defaultApiUrl = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
+  
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig>({
     uuid: uuid || generateId(),
     theme: 'light',
@@ -19,7 +23,7 @@ export function WidgetPage() {
     subtitle: 'How can I help you today?',
     placeholder: 'Type your message...',
     welcomeMessage: 'Hello! I\'m your AI assistant. How can I help you today?',
-    apiUrl: 'http://localhost:3000',
+    apiUrl: defaultApiUrl,
     apiKey: 'your_api_key_here',
     themeColor: THEME.primary.hex, // Modern teal/cyan
     defaultOpen: false, // Default to closed for embedded widgets
@@ -36,7 +40,13 @@ export function WidgetPage() {
     if (configParam) {
       try {
         const decodedConfig = JSON.parse(decodeURIComponent(configParam));
-        setWidgetConfig(prev => ({ ...prev, ...decodedConfig }));
+        // If apiUrl is not provided in config, use environment variable (for embed widget)
+        // If apiUrl is provided in config, use it (for NPM package usage)
+        const mergedConfig = {
+          ...decodedConfig,
+          apiUrl: decodedConfig.apiUrl || defaultApiUrl
+        };
+        setWidgetConfig(prev => ({ ...prev, ...mergedConfig }));
         
         // Only open by default if it's the playground
         if (playgroundParam === 'true') {
@@ -47,7 +57,7 @@ export function WidgetPage() {
         console.error('Failed to parse widget config from URL:', error);
       }
     }
-  }, [location.search]);
+  }, [location.search, defaultApiUrl]);
 
   // Hide scrollbars when in iframe mode
   useEffect(() => {

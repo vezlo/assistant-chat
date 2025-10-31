@@ -35,6 +35,8 @@ import { Widget } from '@vezlo/assistant-chat';
 function App() {
   const config = {
     uuid: 'your-widget-uuid',
+    apiUrl: 'http://localhost:3000',
+    apiKey: 'your-api-key',
     title: 'AI Assistant',
     themeColor: '#10b981',
     // ... other config

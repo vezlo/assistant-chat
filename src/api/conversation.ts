@@ -19,14 +19,16 @@ export interface ConversationResponse {
   updated_at: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
+const DEFAULT_API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
 
 /**
  * Create a new conversation
  */
 export async function createConversation(
-  request: CreateConversationRequest
+  request: CreateConversationRequest,
+  apiUrl?: string
 ): Promise<ConversationResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   try {
     const response = await fetch(`${API_BASE_URL}/api/conversations`, {
       method: 'POST',
@@ -53,7 +55,8 @@ export async function createConversation(
 /**
  * Get conversation by UUID
  */
-export async function getConversation(uuid: string): Promise<ConversationResponse> {
+export async function getConversation(uuid: string, apiUrl?: string): Promise<ConversationResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   try {
     const response = await fetch(`${API_BASE_URL}/api/conversations/${uuid}`, {
       method: 'GET',

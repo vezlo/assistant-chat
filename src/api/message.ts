@@ -24,15 +24,17 @@ export interface GenerateMessageResponse {
   created_at: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
+const DEFAULT_API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
 
 /**
  * Create a user message in a conversation
  */
 export async function createUserMessage(
   conversationUuid: string,
-  request: CreateMessageRequest
+  request: CreateMessageRequest,
+  apiUrl?: string
 ): Promise<MessageResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/conversations/${conversationUuid}/messages`,
@@ -63,8 +65,10 @@ export async function createUserMessage(
  * Generate AI response for a user message
  */
 export async function generateAIResponse(
-  userMessageUuid: string
+  userMessageUuid: string,
+  apiUrl?: string
 ): Promise<GenerateMessageResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/messages/${userMessageUuid}/generate`,

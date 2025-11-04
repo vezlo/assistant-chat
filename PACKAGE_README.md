@@ -28,6 +28,8 @@ import { Widget } from '@vezlo/assistant-chat';
 function App() {
   const widgetConfig = {
     uuid: 'your-widget-uuid',
+    apiUrl: 'http://localhost:3000',
+    apiKey: 'your-api-key',
     title: 'AI Assistant',
     subtitle: 'How can I help you?',
     placeholder: 'Type your message...',
@@ -47,6 +49,8 @@ function App() {
 The `WidgetConfig` interface includes:
 
 - `uuid`: Unique identifier for your widget
+- `apiUrl`: Assistant Server API URL (required for NPM package usage)
+- `apiKey`: API key for authentication (required)
 - `title`: Header title
 - `subtitle`: Subtitle text
 - `placeholder`: Input placeholder text
@@ -129,6 +133,8 @@ function MyApp() {
       <h1>My Website</h1>
       <Widget config={{
         uuid: 'my-widget-123',
+        apiUrl: 'http://localhost:3000',
+        apiKey: 'your-api-key',
         title: 'Support Chat',
         themeColor: '#3b82f6',
         position: 'bottom-right',
@@ -157,6 +163,8 @@ function MyApp() {
     <Widget 
       config={{
         uuid: 'my-widget-123',
+        apiUrl: 'http://localhost:3000',
+        apiKey: 'your-api-key',
         title: 'Support Chat',
         themeColor: '#3b82f6'
       }}
@@ -177,6 +185,8 @@ function MyApp() {
     <Widget 
       config={{
         uuid: 'my-widget-123',
+        apiUrl: 'http://localhost:3000',
+        apiKey: 'your-api-key',
         title: 'Support Chat',
         themeColor: '#3b82f6'
       }}

@@ -18,9 +18,6 @@ Edit the `.env` file with your settings:
 # Assistant Server Configuration
 VITE_ASSISTANT_SERVER_URL=http://localhost:3000
 
-# Widget Configuration
-VITE_DEFAULT_USER_UUID=user-123
-VITE_DEFAULT_COMPANY_UUID=company-456
 ```
 
 **Note**: In Vite, environment variables must be prefixed with `VITE_` to be exposed to the client-side code.
@@ -39,9 +36,7 @@ The widget integrates with the Assistant Server using the following flow:
 ```typescript
 // Request
 {
-  "title": "New Chat",
-  "user_uuid": "user-123",
-  "company_uuid": "company-456"
+  "title": "New Chat"
 }
 
 // Response
@@ -220,8 +215,6 @@ npm run build
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `VITE_ASSISTANT_SERVER_URL` | Assistant Server API URL | `http://localhost:3000` | Yes |
-| `VITE_DEFAULT_USER_UUID` | Default user identifier | `user-123` | Yes |
-| `VITE_DEFAULT_COMPANY_UUID` | Default company identifier | `company-456` | Yes |
 
-**Note**: These are fallback values. In production, you should dynamically set user and company UUIDs based on your authentication system.
+**Note**: These are fallback values. In production, you should dynamically set user-specific context through your own backend or session management.
 

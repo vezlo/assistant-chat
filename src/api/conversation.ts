@@ -4,9 +4,7 @@
  */
 
 export interface CreateConversationRequest {
-  title: string;
-  user_uuid: string;
-  company_uuid: string;
+  title?: string;
 }
 
 export interface ConversationResponse {

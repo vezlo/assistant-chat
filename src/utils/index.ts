@@ -40,9 +40,6 @@ export function getEnvConfig() {
   return {
     VITE_ASSISTANT_SERVER_URL: import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000',
     VITE_ASSISTANT_SERVER_API_KEY: import.meta.env.VITE_ASSISTANT_SERVER_API_KEY || '',
-    VITE_WIDGET_DEFAULT_THEME: (import.meta.env.VITE_WIDGET_DEFAULT_THEME as 'light' | 'dark') || 'light',
-    VITE_WIDGET_DEFAULT_POSITION: import.meta.env.VITE_WIDGET_DEFAULT_POSITION || 'bottom-right',
-    VITE_WIDGET_DEFAULT_SIZE: import.meta.env.VITE_WIDGET_DEFAULT_SIZE || '350x500',
     VITE_DEV_MODE: import.meta.env.VITE_DEV_MODE === 'true',
     VITE_DEBUG_MODE: import.meta.env.VITE_DEBUG_MODE === 'true'
   };

@@ -86,13 +86,8 @@ export function Widget({
         setIsCreatingConversation(true);
         try {
           // Create a new conversation
-          const userUuid = import.meta.env.VITE_DEFAULT_USER_UUID || 'user-' + generateId().substring(0, 8);
-          const companyUuid = import.meta.env.VITE_DEFAULT_COMPANY_UUID || 'company-' + generateId().substring(0, 8);
-          
           const conversation = await createConversation({
             title: 'New Chat',
-            user_uuid: userUuid,
-            company_uuid: companyUuid,
           }, config.apiUrl);
 
           setConversationUuid(conversation.uuid);

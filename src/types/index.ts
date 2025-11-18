@@ -55,9 +55,6 @@ export interface WidgetProps {
 export interface EnvConfig {
   VITE_ASSISTANT_SERVER_URL: string;
   VITE_ASSISTANT_SERVER_API_KEY: string;
-  VITE_WIDGET_DEFAULT_THEME: 'light' | 'dark';
-  VITE_WIDGET_DEFAULT_POSITION: string;
-  VITE_WIDGET_DEFAULT_SIZE: string;
   VITE_DEV_MODE: boolean;
   VITE_DEBUG_MODE: boolean;
 }

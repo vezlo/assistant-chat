@@ -103,8 +103,17 @@ npm publish  # Publish to NPM
 
 ### App (Vercel)
 
-#### One-Click Deploy
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vezlo/assistant-chat)
+#### Deploy via Vercel Marketplace (Recommended)
+[![Install on Vercel](https://vercel.com/button)](https://vercel.com/marketplace/vezlo-assistant-chat)
+
+The marketplace app deploys the frontend automatically, prompts you for the **Assistant Server URL** and optional **API key**, and ships both the chat UI and embeddable widget without any manual environment setup. After connecting your Vercel project you can immediately visit:
+
+- Chat UI: `https://your-project.vercel.app/`
+
+#### One-Click Deploy (GitHub Clone)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vezlo/assistant-chat&integration-ids=oac_ZKcos500xraYgL9hH2d3Bs3A)
+
+This clones the repo into your GitHub account, spins up a new Vercel project using the default `main` branch, and links the same Vezlo integration so the Assistant Chat deployment can gather its Assistant Server URL and API key during setup.
 
 #### Manual Vercel CLI Deployment
 ```bash
@@ -117,13 +126,6 @@ vercel
 # Set environment variables (required)
 vercel env add VITE_ASSISTANT_SERVER_URL
 vercel env add VITE_ASSISTANT_SERVER_API_KEY
-
-# Optional environment variables
-vercel env add VITE_DEFAULT_USER_UUID
-vercel env add VITE_DEFAULT_COMPANY_UUID
-vercel env add VITE_WIDGET_DEFAULT_THEME
-vercel env add VITE_WIDGET_DEFAULT_POSITION
-vercel env add VITE_WIDGET_DEFAULT_SIZE
 
 # Deploy to production
 vercel --prod

@@ -8,8 +8,6 @@ services:
     environment:
       - VITE_ASSISTANT_SERVER_URL=http://localhost:3000
       - VITE_ASSISTANT_SERVER_API_KEY=your_api_key_here
-      - VITE_WIDGET_DEFAULT_THEME=light
-      - VITE_WIDGET_DEFAULT_POSITION=bottom-right
     restart: unless-stopped
 
 

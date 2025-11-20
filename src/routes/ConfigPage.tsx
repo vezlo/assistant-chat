@@ -48,12 +48,14 @@ export function ConfigPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
       <nav className="border-b-2 border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Logo size="md" />
-          <Link to={`/widget/${config.uuid}`} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center">
-            <Eye className="w-4 h-4 mr-1" />
-            Preview Widget
-          </Link>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="h-16 flex justify-between items-center">
+            <Logo size="lg" />
+            <Link to={`/widget/${config.uuid}`} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center">
+              <Eye className="w-4 h-4 mr-1" />
+              Preview Widget
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -236,7 +238,7 @@ export function ConfigPage() {
                       </div>
 
                       {/* Footer */}
-                      <div className="border-t border-gray-200 px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100">
+                      <div className="border-t border-gray-200 px-3 bg-gradient-to-r from-gray-50 to-white">
                         <VezloFooter size="sm" />
                       </div>
                     </div>

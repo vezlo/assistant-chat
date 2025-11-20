@@ -7,19 +7,31 @@ interface LogoProps {
 
 export function Logo({ className = '', size = 'md' }: LogoProps) {
   const heights = {
-    sm: 32,
-    md: 40,
-    lg: 48
+    sm: 44,
+    md: 56,
+    lg: 68
   };
+  const offsets = {
+    sm: -3,
+    md: -5,
+    lg: -6,
+  };
+  const scale = 1.5;
 
   return (
-    <Link to="/" className={`inline-block ${className}`}>
-      <img 
-        src="/assets/vezlo-logo.svg" 
-        alt="Vezlo" 
-        style={{ height: `${heights[size]}px` }}
-        className="inline-block hover:opacity-80 transition-opacity"
-      />
+    <Link to="/" className={`inline-flex items-center h-full ${className}`} style={{ lineHeight: 0 }}>
+      <div className="h-full flex items-center overflow-hidden" style={{ maxHeight: `${heights[size]}px` }}>
+        <img 
+          src="/assets/vezlo.png" 
+          alt="Vezlo" 
+          style={{ 
+            height: `${scale * 100}%`,
+            width: 'auto', 
+            transform: `translateX(${offsets[size]}px) translateY(-2px)`
+          }}
+          className="block hover:opacity-90 transition-opacity"
+        />
+      </div>
     </Link>
   );
 }

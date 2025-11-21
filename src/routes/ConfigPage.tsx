@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Copy, Check, Settings, Code2, Eye, Play, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { WidgetConfig } from '@/types';
@@ -25,6 +25,26 @@ export function ConfigPage() {
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed'>('config');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('widget');
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const primaryNav = [
+    { label: 'Dashboard', key: 'dashboard', href: '/home' },
+    { label: 'Widget', href: '/config', key: 'widget' },
+    { label: 'Knowledge', key: 'knowledge', href: '#' },
+    { label: 'Settings', key: 'settings', href: '#' },
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
 
   const generateEmbedCode = () => {
     const baseUrl = window.location.origin;
@@ -46,18 +66,85 @@ export function ConfigPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="border-b-2 border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="h-16 flex justify-between items-center">
-            <Logo size="lg" />
-            <Link to={`/widget/${config.uuid}`} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center">
-              <Eye className="w-4 h-4 mr-1" />
-              Preview Widget
-            </Link>
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-0.5 space-y-0.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-[240px]">
+              <Logo size="lg" className="max-h-20 -ml-3.5" />
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-semibold text-gray-900 leading-tight">Acme Robotics</p>
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.25em] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm"
+                  title="Workspace plan"
+                >
+                  Pro
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to={`/widget/${config.uuid}`}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full hover:border-emerald-200 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </Link>
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  className="flex items-center rounded-full border border-gray-200 p-0.5 hover:border-gray-300 transition-colors bg-white"
+                  aria-label="User menu"
+                >
+                  <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-semibold">
+                    AR
+                  </div>
+                </button>
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-60 rounded-xl border border-gray-100 bg-white shadow-2xl p-3 space-y-2 z-20">
+                    <div className="border-b border-gray-100 pb-2">
+                      <p className="text-sm font-semibold text-gray-900">Alex Rivera</p>
+                      <p className="text-xs text-gray-500">alex@acme.io</p>
+                    </div>
+                    <button className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors">
+                      Account Settings
+                    </button>
+                    <button className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors">
+                      Billing
+                    </button>
+                    <button className="w-full text-left text-sm text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5 transition-colors">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-0.5">
+            <nav className="flex items-center gap-4 text-sm font-medium text-gray-500 overflow-x-auto">
+              {primaryNav.map((item) => {
+                const isActive = activeSection === item.key;
+                const className = `pb-1 border-b-2 transition-colors ${
+                  isActive
+                    ? 'border-emerald-600 text-emerald-700'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                }`;
+                return (
+                  <Link
+                    key={item.key}
+                    to={item.href || '#'}
+                    className={className}
+                    onClick={() => setActiveSection(item.key)}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">

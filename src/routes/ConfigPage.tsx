@@ -33,6 +33,10 @@ export function ConfigPage() {
   const primaryNav = [
     { label: 'Chat Assistant', href: '/config', key: 'widget' },
     { label: 'Knowledge', key: 'knowledge', href: '#' },
+    { label: 'Team', key: 'team', href: '#' },
+    { label: 'Analytics', key: 'analytics', href: '#' },
+    { label: 'Integrations', key: 'integrations', href: '#' },
+    { label: 'API Keys', key: 'api-keys', href: '#' },
     { label: 'Settings', key: 'settings', href: '#' },
   ];
 
@@ -73,8 +77,9 @@ export function ConfigPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="px-8 space-y-0.5">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-6 min-w-[240px] relative" ref={workspaceMenuRef}>
+            <div className="flex items-center gap-3 min-w-[240px] relative" ref={workspaceMenuRef}>
               <Logo size="lg" className="max-h-20 -ml-3.5" />
+              <div className="text-gray-300 text-lg font-light">/</div>
               <button
                 onClick={() => setIsWorkspaceMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 leading-tight mt-0.5 px-3 py-1 rounded-lg border border-transparent hover:border-gray-200 transition-colors cursor-pointer bg-white"

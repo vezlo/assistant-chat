@@ -71,7 +71,7 @@ export function ConfigPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 space-y-0.5">
+        <div className="px-8 space-y-0.5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-6 min-w-[240px] relative" ref={workspaceMenuRef}>
               <Logo size="lg" className="max-h-20 -ml-3.5" />
@@ -192,7 +192,7 @@ export function ConfigPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 pb-16">
+      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16 mt-5">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
           <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>

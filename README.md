@@ -20,6 +20,8 @@ A complete chat widget solution with both a React component library and standalo
 - **Embed Code Generator**: Get ready-to-use embed codes
 - **Docker Support**: Easy deployment with Docker Compose
 - **Vercel Ready**: One-click deployment to Vercel
+- **Shared Layout**: `MainLayout` + `Header` provide a consistent, Vercel-style shell across every page
+- **Auth-Ready Context**: `AppProvider` exposes user/workspace state, token helpers, and `ProtectedRoute` support for future login flows
 
 ## Quick Start
 
@@ -65,6 +67,7 @@ npm run dev
 - Live preview and playground
 - Embed code generation
 - Docker and Vercel deployment support
+- Theme + widget matrices: see [`docs/THEME_WIDGET_CONFIG.md`](docs/THEME_WIDGET_CONFIG.md) for every field, color mapping tips, and widget overrides
 
 ## Prerequisites
 
@@ -160,9 +163,17 @@ assistant-chat/
 ### How It Works
 
 - **Same Widget Code**: Both the NPM package and standalone app use the same `Widget.tsx` component
+- **Embed & Playground**: `WidgetPage.tsx` powers the iframe, embed script, and playground preview using that same component
 - **NPM Package**: Publishes the widget component as a reusable library
 - **Standalone App**: Uses the widget component directly for admin interface and playground
 - **No Duplication**: Single source of truth for the widget component
+
+## Layout & Auth Architecture
+
+- `AppProvider` manages `user`, `workspace`, auth token, and exposes `login/logout` helpers plus `ProtectedRoute` for future API integration.
+- `Header` & `MainLayout` deliver the new full-width, two-row dashboard shell (logo, workspace switcher, company badge, primary nav, profile dropdown).
+- `ConfigPage` (dashboard) and every other route render inside `MainLayout`, so all future pages automatically inherit the header and spacing.
+- `LoginPage` lives outside the layout and is already wired to `AppProvider`, making it ready for real authentication APIs.
 
 ## Architecture
 

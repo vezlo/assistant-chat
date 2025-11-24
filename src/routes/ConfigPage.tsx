@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { Copy, Check, Settings, Code2, Eye, Play, Bot, ThumbsUp, ThumbsDown, CreditCard, Building2, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
-import { Logo } from '@/components/ui/Logo';
 import { VezloFooter } from '@/components/ui/VezloFooter';
 import { THEME } from '@/config/theme';
+import { MainLayout } from '@/components/layouts/MainLayout';
 
 export function ConfigPage() {
   const [config, setConfig] = useState<WidgetConfig>({
@@ -25,33 +24,6 @@ export function ConfigPage() {
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed'>('config');
-  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('widget');
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const workspaceMenuRef = useRef<HTMLDivElement>(null);
-  const primaryNav = [
-    { label: 'Chat Assistant', href: '/config', key: 'widget' },
-    { label: 'Knowledge', key: 'knowledge', href: '#' },
-    { label: 'Team', key: 'team', href: '#' },
-    { label: 'Analytics', key: 'analytics', href: '#' },
-    { label: 'Integrations', key: 'integrations', href: '#' },
-    { label: 'API Keys', key: 'api-keys', href: '#' },
-    { label: 'Settings', key: 'settings', href: '#' },
-  ];
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-      if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(event.target as Node)) {
-        setIsWorkspaceMenuOpen(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
 
 
   const generateEmbedCode = () => {
@@ -73,131 +45,8 @@ export function ConfigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="px-8 space-y-0.5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-[240px] relative" ref={workspaceMenuRef}>
-              <Logo size="lg" className="max-h-20 -ml-3.5" />
-              <div className="text-gray-300 text-lg font-light">/</div>
-              <button
-                onClick={() => setIsWorkspaceMenuOpen((prev) => !prev)}
-                className="flex items-center gap-2 leading-tight mt-0.5 px-3 py-1 rounded-lg border border-transparent hover:border-gray-200 transition-colors cursor-pointer bg-white"
-                aria-label="Workspace menu"
-              >
-                <div
-                  className="w-[22px] h-[22px] rounded-full shadow"
-                  style={{ backgroundColor: '#FB7185' }}
-                />
-                <p className="text-[15px] font-semibold text-gray-900">Vezlo · Workspace</p>
-                {!isWorkspaceMenuOpen ? (
-                  <svg className="w-[14px] h-[14px] text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
-                  </svg>
-                ) : (
-                  <svg className="w-[14px] h-[14px] text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 15l6-6 6 6" />
-                  </svg>
-                )}
-              </button>
-              {isWorkspaceMenuOpen && (
-                <div className="absolute top-[65px] left-[105px] w-64 rounded-xl border border-gray-100 bg-white shadow-2xl p-3 space-y-3 z-20">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-[20px] h-[20px] rounded-full shadow"
-                        style={{ backgroundColor: '#FB7185' }}
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Vezlo</p>
-                        <p className="text-xs text-gray-500">Workspace</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200 shadow-sm">
-                      Community
-                    </span>
-                  </div>
-                  <button className="w-full text-left text-sm text-gray-700 hover:bg-emerald-100 rounded-lg px-3 py-1.5 transition-colors cursor-pointer flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-gray-500" />
-                    Billing
-                  </button>
-                  <button className="w-full text-left text-sm text-gray-700 hover:bg-emerald-100 rounded-lg px-3 py-1.5 transition-colors cursor-pointer flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-gray-500" />
-                    Workspace Settings
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span
-                className="text-[10px] font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 shadow-sm"
-                title="Community edition"
-              >
-                Community Edition
-              </span>
-              <Link
-                to={`/widget/${config.uuid}`}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full hover:border-emerald-200 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                Preview
-              </Link>
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className="flex items-center rounded-full border border-gray-200 p-0.5 hover:border-gray-300 transition-colors bg-white cursor-pointer"
-                  aria-label="User menu"
-                >
-                  <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-semibold transition-transform hover:scale-[1.03] hover:brightness-110">
-                    A
-                  </div>
-                </button>
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-60 rounded-xl border border-gray-100 bg-white shadow-2xl p-3 space-y-2 z-20">
-                    <div className="border-b border-gray-100 pb-2">
-                      <p className="text-sm font-semibold text-gray-900">Admin</p>
-                      <p className="text-xs text-gray-500">admin@vezlo.org</p>
-                    </div>
-                    <button className="w-full flex items-center gap-2 text-left text-sm text-gray-700 hover:bg-emerald-100 rounded-lg px-2 py-1.5 transition-colors cursor-pointer">
-                      <User className="w-4 h-4 text-gray-500" />
-                      Account Settings
-                    </button>
-                    <button className="w-full text-left text-sm text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5 transition-colors cursor-pointer border-t border-gray-100 mt-1 pt-2">
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 pt-0.5">
-            <nav className="flex items-center gap-4 text-sm font-medium text-gray-500 overflow-x-auto">
-              {primaryNav.map((item) => {
-                const isActive = activeSection === item.key;
-                const className = `pb-1 border-b-2 transition-colors ${
-                  isActive
-                    ? 'border-emerald-600 text-emerald-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-                }`;
-                return (
-                  <Link
-                    key={item.key}
-                    to={item.href || '#'}
-                    className={className}
-                    onClick={() => setActiveSection(item.key)}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16 mt-5">
+    <MainLayout>
+      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
           <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>
@@ -470,6 +319,6 @@ export function ConfigPage() {
         </div>
       </div>
       <div className="h-8" />
-    </div>
+    </MainLayout>
   );
 }

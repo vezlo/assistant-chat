@@ -70,8 +70,6 @@ export const getHeaderGradient = (color: string = THEME.primary.hex) => {
 };
 
 // Helper function to get darker shade for hover states
-export const getHoverColor = (color: string = THEME.primary.hex) => {
-  return THEME.primary.darker;
-};
+export const getHoverColor = () => THEME.primary.darker;
 
 

@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Eye, Play, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
-import { Logo } from '@/components/ui/Logo';
 import { VezloFooter } from '@/components/ui/VezloFooter';
 import { THEME } from '@/config/theme';
+import { MainLayout } from '@/components/layouts/MainLayout';
 
 export function ConfigPage() {
   const [config, setConfig] = useState<WidgetConfig>({
@@ -26,6 +25,7 @@ export function ConfigPage() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed'>('config');
 
+
   const generateEmbedCode = () => {
     const baseUrl = window.location.origin;
     return `<script type="text/javascript" src="${baseUrl}/widget.js"></script>
@@ -45,22 +45,11 @@ export function ConfigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="border-b-2 border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Logo size="md" />
-          <Link to={`/widget/${config.uuid}`} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center">
-            <Eye className="w-4 h-4 mr-1" />
-            Preview Widget
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <MainLayout>
+      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Configure Your Chat Widget</h1>
-          <p className="text-gray-600">Customize your AI chat assistant and get the embed code</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
+          <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>
         </div>
 
         <div className="w-full">
@@ -71,35 +60,53 @@ export function ConfigPage() {
               <nav className="flex">
                 <button
                   onClick={() => setActiveTab('config')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'config'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings
+                    className={`w-4 h-4 transition-colors ${
+                      activeTab === 'config'
+                        ? 'text-emerald-600'
+                        : 'text-gray-400 group-hover:text-emerald-600'
+                    }`}
+                  />
                   Configuration
                 </button>
                 <button
                   onClick={() => setActiveTab('playground')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'playground'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Play className="w-4 h-4" />
+                  <Play
+                    className={`w-4 h-4 transition-colors ${
+                      activeTab === 'playground'
+                        ? 'text-emerald-600'
+                        : 'text-gray-400 group-hover:text-emerald-600'
+                    }`}
+                  />
                   Playground
                 </button>
                 <button
                   onClick={() => setActiveTab('embed')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'embed'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Code2 className="w-4 h-4" />
+                  <Code2
+                    className={`w-4 h-4 transition-colors ${
+                      activeTab === 'embed'
+                        ? 'text-emerald-600'
+                        : 'text-gray-400 group-hover:text-emerald-600'
+                    }`}
+                  />
                   Embed
                 </button>
               </nav>
@@ -236,7 +243,7 @@ export function ConfigPage() {
                       </div>
 
                       {/* Footer */}
-                      <div className="border-t border-gray-200 px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100">
+                      <div className="border-t border-gray-200 px-3 bg-gradient-to-r from-gray-50 to-white">
                         <VezloFooter size="sm" />
                       </div>
                     </div>
@@ -311,6 +318,7 @@ export function ConfigPage() {
           </div>
         </div>
       </div>
-    </div>
+      <div className="h-8" />
+    </MainLayout>
   );
 }

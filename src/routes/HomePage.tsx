@@ -7,15 +7,15 @@ export function HomePage() {
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="border-b-2 border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="h-16 flex justify-between items-center">
             <Logo size="lg" />
-                    <Link
-                      to="/config"
-                      className="bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
-                    >
-                      Configure Widget
-                    </Link>
+            <Link
+              to="/config"
+              className="bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              Configure Widget
+            </Link>
           </div>
         </div>
       </nav>

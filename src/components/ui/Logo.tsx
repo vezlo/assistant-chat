@@ -7,18 +7,22 @@ interface LogoProps {
 
 export function Logo({ className = '', size = 'md' }: LogoProps) {
   const heights = {
-    sm: 32,
-    md: 40,
-    lg: 48
-  };
+    sm: 56,
+    md: 72,
+    lg: 92,
+  } as const;
 
   return (
-    <Link to="/" className={`inline-block ${className}`}>
-      <img 
-        src="/assets/vezlo-logo.svg" 
-        alt="Vezlo" 
-        style={{ height: `${heights[size]}px` }}
-        className="inline-block hover:opacity-80 transition-opacity"
+    <Link to="/" className={`inline-flex items-center ${className}`} style={{ lineHeight: 0 }}>
+      <img
+        src="/assets/vezlo.png"
+        alt="Vezlo"
+        style={{
+          height: `${heights[size]}px`,
+          width: 'auto',
+          display: 'block',
+        }}
+        className="hover:opacity-90 transition-opacity"
       />
     </Link>
   );

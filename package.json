@@ -31,6 +31,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
     "react-router-dom": "^7.9.3",

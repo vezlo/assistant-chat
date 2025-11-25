@@ -74,6 +74,7 @@ npm run dev
 - **Assistant Server**: Both components require a running Assistant Server
 - Node.js 18+ and npm
 - React 18+ (for package usage)
+- *(Optional for Realtime smoke tests)*: Supabase project with Realtime enabled plus `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` defined in the frontend `.env`
 
 ## Features
 

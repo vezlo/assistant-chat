@@ -11,6 +11,7 @@ export interface ConversationListItem {
   message_count: number;
   last_message_at: string | null;
   joined_at: string | null;
+  closed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -116,6 +117,31 @@ export async function joinConversation(
   const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   const response = await fetch(
     `${API_BASE_URL}/api/conversations/${conversationUuid}/join`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const message = await parseErrorMessage(response);
+    throw new Error(message);
+  }
+
+  return (await response.json()) as JoinConversationResponse;
+}
+
+export async function closeConversation(
+  token: string,
+  conversationUuid: string,
+  apiUrl?: string
+): Promise<JoinConversationResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationUuid}/close`,
     {
       method: 'POST',
       headers: {

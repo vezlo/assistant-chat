@@ -44,6 +44,7 @@ export function Widget({
   const [conversationUuid, setConversationUuid] = useState<string | null>(null);
   const [companyUuid, setCompanyUuid] = useState<string | null>(null);
   const [agentJoined, setAgentJoined] = useState(false);
+  const [conversationClosed, setConversationClosed] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -96,6 +97,8 @@ export function Widget({
 
           setConversationUuid(conversation.uuid);
           setCompanyUuid(conversation.company_uuid);
+          setAgentJoined(false);
+          setConversationClosed(false);
           console.log('[Widget] Conversation created:', conversation.uuid, 'Company:', conversation.company_uuid);
 
           // Add welcome message after conversation is created
@@ -135,31 +138,31 @@ export function Widget({
     }
 
     const handleMessageCreated = (payload: MessageCreatedPayload) => {
-      // Only process messages for this conversation
       if (payload.conversation_uuid !== conversationUuid) {
+        return;
+      }
+
+      const status = payload.conversation_update?.status;
+      if (status === 'in_progress') {
+        setAgentJoined(true);
+        setConversationClosed(false);
+      } else if (status === 'closed') {
+        setAgentJoined(false);
+        setConversationClosed(true);
+      }
+
+      if (payload.message.type !== 'system' && payload.message.type !== 'agent') {
         return;
       }
 
       const newMessage: ChatMessage = {
         id: payload.message.uuid,
         content: payload.message.content,
-        role: payload.message.type === 'agent' ? 'assistant' : payload.message.type,
+        role: payload.message.type === 'agent' ? 'assistant' : 'system',
         timestamp: new Date(payload.message.created_at),
       };
 
-      // Handle system message (agent joined)
-      if (payload.message.type === 'system') {
-        setAgentJoined(true);
-        setMessages(prev => [...prev, newMessage]);
-        console.log('[Widget] Agent joined conversation');
-        return;
-      }
-
-      // Handle agent message
-      if (payload.message.type === 'agent') {
-        setMessages(prev => [...prev, newMessage]);
-        console.log('[Widget] Received agent message');
-      }
+      setMessages(prev => [...prev, newMessage]);
     };
 
     const cleanup = subscribeToConversations(
@@ -177,7 +180,7 @@ export function Widget({
   }, [messages, streamingMessage]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading || !conversationUuid) return;
+    if (!input.trim() || isLoading || !conversationUuid || conversationClosed) return;
 
     const userMessageContent = input;
     const userMessage: ChatMessage = {
@@ -263,7 +266,21 @@ export function Widget({
     }
   };
 
+  const handleStartNewChat = () => {
+    if (isCreatingConversation) return;
+    setMessages([]);
+    setStreamingMessage('');
+    setIsLoading(false);
+    setMessageFeedback({});
+    setAgentJoined(false);
+    setConversationClosed(false);
+    setConversationUuid(null);
+    setCompanyUuid(null);
+    setInput('');
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (conversationClosed) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -423,6 +440,18 @@ export function Widget({
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
+            {conversationClosed && (
+              <div className="bg-amber-50 border border-amber-100 text-amber-800 px-4 py-3 rounded-2xl flex flex-col gap-3">
+                <div className="text-sm">This conversation has been closed by the agent.</div>
+                <button
+                  onClick={handleStartNewChat}
+                  className="self-start px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition"
+                  disabled={isCreatingConversation}
+                >
+                  {isCreatingConversation ? 'Starting new chat...' : 'Start New Chat'}
+                </button>
+              </div>
+            )}
             {messages.map((message, index) => (
               <div
                 key={message.id}
@@ -546,17 +575,21 @@ export function Widget({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={config.placeholder}
-                disabled={isLoading}
+                placeholder={
+                  conversationClosed
+                    ? 'Conversation closed. Start a new chat to continue.'
+                    : config.placeholder
+                }
+                disabled={isLoading || conversationClosed}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm transition-all duration-200 placeholder:text-gray-400"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || conversationClosed}
                 className="text-white px-4 py-3 rounded-2xl transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100 min-w-[48px]"
                 style={{ 
                   background: `linear-gradient(to right, ${config.themeColor || THEME.primary.hex}, ${config.themeColor || THEME.primary.hex}dd)`,
-                  opacity: (!input.trim() || isLoading) ? 0.6 : 1
+                  opacity: (!input.trim() || isLoading || conversationClosed) ? 0.6 : 1
                 }}
               >
                 <Send className="w-4 h-4" />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getConversations, getConversationMessages, joinConversation, sendAgentMessage } from '@/api/conversations';
+import { getConversations, getConversationMessages, joinConversation, closeConversation, sendAgentMessage } from '@/api/conversations';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversations';
 import { formatDistanceToNow } from 'date-fns';
 import { subscribeToConversations, type MessageCreatedPayload, type ConversationCreatedPayload } from '@/services/conversationRealtime';
@@ -14,6 +14,7 @@ export function ConversationsTab() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,7 @@ export function ConversationsTab() {
             message_count: payload.conversation_update.message_count,
             last_message_at: payload.conversation_update.last_message_at,
             joined_at: payload.conversation_update.joined_at || conv.joined_at,
+            closed_at: payload.conversation_update.closed_at || conv.closed_at,
             status: payload.conversation_update.status || conv.status
           }
         : conv
@@ -104,6 +106,7 @@ export function ConversationsTab() {
       setSelectedConversation(prev => prev ? { 
         ...prev, 
         joined_at: payload.conversation_update.joined_at || prev.joined_at,
+        closed_at: payload.conversation_update.closed_at || prev.closed_at,
         status: payload.conversation_update.status || prev.status 
       } : null);
     }
@@ -117,6 +120,7 @@ export function ConversationsTab() {
       message_count: payload.conversation.message_count,
       last_message_at: payload.conversation.last_message_at,
       joined_at: null,
+      closed_at: null,
       created_at: payload.conversation.created_at,
       updated_at: payload.conversation.created_at
     };
@@ -139,6 +143,34 @@ export function ConversationsTab() {
       setError(err instanceof Error ? err.message : 'Failed to join conversation');
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleCloseConversation = async () => {
+    if (!token || !selectedConversation) return;
+
+    setIsClosing(true);
+    setError(null);
+    try {
+      const response = await closeConversation(token, selectedConversation.uuid);
+      const closedAt = response.message.created_at;
+      setSelectedConversation(prev =>
+        prev
+          ? { ...prev, closed_at: closedAt, status: 'closed' }
+          : prev
+      );
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.uuid === selectedConversation.uuid
+            ? { ...conv, closed_at: closedAt, status: 'closed' }
+            : conv
+        )
+      );
+      // realtime update handles UI
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to close conversation');
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -257,7 +289,7 @@ export function ConversationsTab() {
                             ? 'text-gray-500'
                             : 'text-amber-600'
                         }`}>
-                          {conv.status === 'in_progress' ? 'In Progress' : conv.status}
+                          {conv.status === 'in_progress' ? 'In Progress' : conv.status === 'closed' ? 'Closed' : conv.status}
                         </span>
                         <span className="text-gray-500">
                           {conv.last_message_at
@@ -296,7 +328,11 @@ export function ConversationsTab() {
                       ? 'text-gray-600'
                       : 'text-amber-600'
                   }`}>
-                    {selectedConversation.status === 'in_progress' ? 'In Progress' : selectedConversation.status}
+                    {selectedConversation.status === 'in_progress'
+                      ? 'In Progress'
+                      : selectedConversation.status === 'closed'
+                      ? 'Closed'
+                      : selectedConversation.status}
                   </span>
                 </div>
               </div>
@@ -309,18 +345,33 @@ export function ConversationsTab() {
                   <LogIn className="w-4 h-4" />
                   {isJoining ? 'Joining...' : 'Join Conversation'}
                 </button>
+              ) : selectedConversation.closed_at ? (
+                <button
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
+                >
+                  Archive Conversation
+                </button>
               ) : (
                 <button 
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+                  onClick={handleCloseConversation}
+                  disabled={isClosing}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   <LogIn className="w-4 h-4 rotate-180" />
-                  Close Conversation
+                  {isClosing ? 'Closing...' : 'Close Conversation'}
                 </button>
               )}
             </div>
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50 p-6">
+              {selectedConversation.closed_at && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center justify-between">
+                  <span>Conversation closed by an agent.</span>
+                  <span className="text-xs text-red-500">{new Date(selectedConversation.closed_at).toLocaleString()}</span>
+                </div>
+              )}
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
@@ -431,7 +482,7 @@ export function ConversationsTab() {
             {/* Message Editor */}
             <div className="bg-white border-t border-gray-100 shadow-lg px-4 py-3">
               <div className={`relative rounded-xl border overflow-hidden ${
-                selectedConversation.joined_at
+                selectedConversation.joined_at && !selectedConversation.closed_at
                   ? 'border-emerald-300 bg-white'
                   : 'border-emerald-300 bg-gray-100'
               }`}>
@@ -439,15 +490,21 @@ export function ConversationsTab() {
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey && selectedConversation.joined_at && !isSending) {
+                    if (e.key === 'Enter' && !e.shiftKey && selectedConversation.joined_at && !selectedConversation.closed_at && !isSending) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
-                  disabled={!selectedConversation.joined_at || isSending}
-                  placeholder={selectedConversation.joined_at ? 'Type your message...' : 'Join the conversation to send messages...'}
+                  disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending}
+                  placeholder={
+                    selectedConversation.closed_at
+                      ? 'Conversation is closed'
+                      : selectedConversation.joined_at
+                      ? 'Type your message...'
+                      : 'Join the conversation to send messages...'
+                  }
                   className={`w-full block bg-transparent px-4 py-3 pr-12 text-sm resize-none focus:outline-none placeholder:text-gray-400 border-none ${
-                    selectedConversation.joined_at
+                    selectedConversation.joined_at && !selectedConversation.closed_at
                       ? 'text-gray-900 cursor-text'
                       : 'text-gray-400 cursor-not-allowed'
                   }`}
@@ -455,13 +512,19 @@ export function ConversationsTab() {
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={!selectedConversation.joined_at || isSending || !messageContent.trim()}
+                  disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending || !messageContent.trim()}
                   className={`absolute right-3 bottom-3 p-2 rounded-lg border ${
-                    selectedConversation.joined_at && !isSending && messageContent.trim()
+                    selectedConversation.joined_at && !selectedConversation.closed_at && !isSending && messageContent.trim()
                       ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 cursor-pointer'
                       : 'border-emerald-300 bg-white text-emerald-300 cursor-not-allowed'
                   }`}
-                  title={selectedConversation.joined_at ? 'Send message' : 'Join the conversation to enable messaging'}
+                  title={
+                    selectedConversation.closed_at
+                      ? 'Conversation is closed'
+                      : selectedConversation.joined_at
+                      ? 'Send message'
+                      : 'Join the conversation to enable messaging'
+                  }
                 >
                   <Send className="w-4 h-4" />
                 </button>

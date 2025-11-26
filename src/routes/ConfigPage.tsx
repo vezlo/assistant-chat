@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
 import { THEME } from '@/config/theme';
 import { MainLayout } from '@/components/layouts/MainLayout';
+import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 
 export function ConfigPage() {
   const [config, setConfig] = useState<WidgetConfig>({
@@ -23,7 +24,7 @@ export function ConfigPage() {
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations'>('config');
 
 
   const generateEmbedCode = () => {
@@ -109,11 +110,28 @@ export function ConfigPage() {
                   />
                   Embed
                 </button>
+                <button
+                  onClick={() => setActiveTab('conversations')}
+                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+                    activeTab === 'conversations'
+                        ? 'border-emerald-600 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <MessageSquare
+                    className={`w-4 h-4 transition-colors ${
+                      activeTab === 'conversations'
+                        ? 'text-emerald-600'
+                        : 'text-gray-400 group-hover:text-emerald-600'
+                    }`}
+                  />
+                  Conversations
+                </button>
               </nav>
             </div>
 
             {/* Tab Content */}
-            <div className={activeTab === 'playground' ? '' : 'p-6'}>
+            <div className={activeTab === 'playground' || activeTab === 'conversations' ? '' : 'p-6'}>
               {activeTab === 'config' && (
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Configuration Form */}
@@ -283,6 +301,10 @@ export function ConfigPage() {
                 </div>
               )}
 
+              {activeTab === 'conversations' && (
+                <ConversationsTab />
+              )}
+
               {activeTab === 'embed' && (
                 <div>
                   <div className="flex justify-between items-center mb-4">
@@ -317,8 +339,7 @@ export function ConfigPage() {
             </div>
           </div>
         </div>
-      </div>
-      <div className="h-8" />
+      </div>      
     </MainLayout>
   );
 }

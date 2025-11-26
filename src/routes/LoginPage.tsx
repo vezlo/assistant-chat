@@ -33,6 +33,11 @@ export function LoginPage() {
         email: me.user.email,
         id: me.user.uuid,
         role: me.profile.role,
+        profile: {
+          company_uuid: me.profile.company_uuid,
+          company_name: me.profile.company_name,
+          role: me.profile.role,
+        },
       });
 
       setWorkspace({

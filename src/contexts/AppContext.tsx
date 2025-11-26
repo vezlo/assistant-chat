@@ -9,6 +9,11 @@ interface User {
   avatar?: string;
   id?: string;
   role?: string;
+  profile?: {
+    company_uuid: string;
+    company_name: string;
+    role: string;
+  };
 }
 
 interface Workspace {

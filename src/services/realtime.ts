@@ -73,7 +73,7 @@ export function listenForAuthBroadcast(
       if (err) {
         console.error('[Realtime] Subscription failed:', err.message || err);
       } else if (status === 'SUBSCRIBED') {
-        console.info('[Realtime] Subscribed to vezlo_authenticated channel');
+        console.info('[Realtime] Subscribed to channel: vezlo_authenticated');
       } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
         console.error('[Realtime] Channel connection failed:', status);
       }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getConversations, getConversationMessages } from '@/api/conversations';
+import { getConversations, getConversationMessages, joinConversation } from '@/api/conversations';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversations';
 import { formatDistanceToNow } from 'date-fns';
 import { subscribeToConversations, type MessageCreatedPayload, type ConversationCreatedPayload } from '@/services/conversationRealtime';
@@ -13,6 +13,7 @@ export function ConversationsTab() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newConversationIds, setNewConversationIds] = useState<Set<string>>(new Set());
 
@@ -86,7 +87,9 @@ export function ConversationsTab() {
         ? {
             ...conv,
             message_count: payload.conversation_update.message_count,
-            last_message_at: payload.conversation_update.last_message_at
+            last_message_at: payload.conversation_update.last_message_at,
+            joined_at: payload.conversation_update.joined_at || conv.joined_at,
+            status: payload.conversation_update.status || conv.status
           }
         : conv
     ));
@@ -94,6 +97,13 @@ export function ConversationsTab() {
     // If this conversation is currently selected, append the message
     if (selectedConversation?.uuid === payload.conversation_uuid) {
       setMessages(prev => [...prev, payload.message]);
+      
+      // Update selected conversation state with joined_at and status
+      setSelectedConversation(prev => prev ? { 
+        ...prev, 
+        joined_at: payload.conversation_update.joined_at || prev.joined_at,
+        status: payload.conversation_update.status || prev.status 
+      } : null);
     }
   };
 
@@ -104,6 +114,7 @@ export function ConversationsTab() {
       status: payload.conversation.status,
       message_count: payload.conversation.message_count,
       last_message_at: payload.conversation.last_message_at,
+      joined_at: null,
       created_at: payload.conversation.created_at,
       updated_at: payload.conversation.created_at
     };
@@ -112,6 +123,21 @@ export function ConversationsTab() {
     
     // Mark as new
     setNewConversationIds(prev => new Set([...prev, newConversation.uuid]));
+  };
+
+  const handleJoinConversation = async () => {
+    if (!token || !selectedConversation) return;
+
+    setIsJoining(true);
+    setError(null);
+    try {
+      await joinConversation(token, selectedConversation.uuid);
+      // The realtime update will handle UI changes
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join conversation');
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   const getAvatarColor = (uuid: string) => {
@@ -207,13 +233,13 @@ export function ConversationsTab() {
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className={`capitalize font-medium ${
-                          conv.status === 'active'
-                            ? 'text-green-600'
-                            : conv.status === 'pending'
-                            ? 'text-amber-600'
-                            : 'text-gray-500'
+                          conv.status === 'in_progress'
+                            ? 'text-blue-600'
+                            : conv.status === 'closed'
+                            ? 'text-gray-500'
+                            : 'text-amber-600'
                         }`}>
-                          {conv.status}
+                          {conv.status === 'in_progress' ? 'In Progress' : conv.status}
                         </span>
                         <span className="text-gray-500">
                           {conv.last_message_at
@@ -246,20 +272,33 @@ export function ConversationsTab() {
                   </span>
                   <span className="text-gray-300">•</span>
                   <span className={`font-medium capitalize ${
-                    selectedConversation.status === 'active'
-                      ? 'text-green-600'
-                      : selectedConversation.status === 'pending'
-                      ? 'text-amber-600'
-                      : 'text-gray-600'
+                    selectedConversation.status === 'in_progress'
+                      ? 'text-blue-600'
+                      : selectedConversation.status === 'closed'
+                      ? 'text-gray-600'
+                      : 'text-amber-600'
                   }`}>
-                    {selectedConversation.status}
+                    {selectedConversation.status === 'in_progress' ? 'In Progress' : selectedConversation.status}
                   </span>
                 </div>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium">
-                <LogIn className="w-4 h-4" />
-                Join Conversation
-              </button>
+              {!selectedConversation.joined_at ? (
+                <button 
+                  onClick={handleJoinConversation}
+                  disabled={isJoining}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <LogIn className="w-4 h-4" />
+                  {isJoining ? 'Joining...' : 'Join Conversation'}
+                </button>
+              ) : (
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+                >
+                  <LogIn className="w-4 h-4 rotate-180" />
+                  Close Conversation
+                </button>
+              )}
             </div>
 
             {/* Messages Area */}
@@ -293,7 +332,14 @@ export function ConversationsTab() {
                       <div className="space-y-4">
                         {msgs.map((msg) => (
                           <div key={msg.uuid}>
-                            {msg.type === 'user' ? (
+                            {msg.type === 'system' ? (
+                              /* System Message - Centered */
+                              <div className="flex justify-center">
+                                <div className="bg-blue-50 text-blue-700 text-xs px-4 py-2 rounded-full border border-blue-200">
+                                  {msg.content}
+                                </div>
+                              </div>
+                            ) : msg.type === 'user' ? (
                               /* User Message - Right aligned */
                               <div className="flex justify-end">
                                 <div className="max-w-[70%]">
@@ -364,19 +410,31 @@ export function ConversationsTab() {
               )}
             </div>
 
-            {/* Message Editor (disabled) */}
+            {/* Message Editor */}
             <div className="bg-white border-t border-gray-100 shadow-lg px-4 py-3">
-              <div className="relative rounded-xl border border-emerald-300 bg-gray-100 overflow-hidden">
+              <div className={`relative rounded-xl border overflow-hidden ${
+                selectedConversation.joined_at
+                  ? 'border-emerald-300 bg-white'
+                  : 'border-emerald-300 bg-gray-100'
+              }`}>
                 <textarea
-                  disabled
-                  placeholder="Join the conversation to send messages..."
-                  className="w-full block bg-transparent px-4 py-3 pr-12 text-gray-400 text-sm cursor-not-allowed resize-none focus:outline-none placeholder:text-gray-400 border-none"
+                  disabled={!selectedConversation.joined_at}
+                  placeholder={selectedConversation.joined_at ? 'Type your message...' : 'Join the conversation to send messages...'}
+                  className={`w-full block bg-transparent px-4 py-3 pr-12 text-sm resize-none focus:outline-none placeholder:text-gray-400 border-none ${
+                    selectedConversation.joined_at
+                      ? 'text-gray-900 cursor-text'
+                      : 'text-gray-400 cursor-not-allowed'
+                  }`}
                   rows={3}
                 />
                 <button
-                  disabled
-                  className="absolute right-3 bottom-3 p-2 rounded-lg border border-emerald-300 bg-white text-emerald-300 cursor-not-allowed"
-                  title="Join the conversation to enable messaging"
+                  disabled={!selectedConversation.joined_at}
+                  className={`absolute right-3 bottom-3 p-2 rounded-lg border ${
+                    selectedConversation.joined_at
+                      ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 cursor-pointer'
+                      : 'border-emerald-300 bg-white text-emerald-300 cursor-not-allowed'
+                  }`}
+                  title={selectedConversation.joined_at ? 'Send message' : 'Join the conversation to enable messaging'}
                 >
                   <Send className="w-4 h-4" />
                 </button>

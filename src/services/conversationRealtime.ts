@@ -30,13 +30,15 @@ export interface MessageCreatedPayload {
   message: {
     uuid: string;
     content: string;
-    type: 'user' | 'assistant' | 'agent';
+    type: 'user' | 'assistant' | 'agent' | 'system';
     author_id: number | null;
     created_at: string;
   };
   conversation_update: {
     message_count: number;
     last_message_at: string;
+    joined_at?: string;
+    status?: string;
   };
 }
 

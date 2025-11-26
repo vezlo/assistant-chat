@@ -10,6 +10,7 @@ export interface ConversationListItem {
   status: string;
   message_count: number;
   last_message_at: string | null;
+  joined_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,7 +28,7 @@ export interface ConversationListResponse {
 export interface ConversationMessage {
   uuid: string;
   content: string;
-  type: 'user' | 'assistant' | 'agent';
+  type: 'user' | 'assistant' | 'agent' | 'system';
   author_id: number | null;
   created_at: string;
 }
@@ -100,5 +101,35 @@ export async function getConversationMessages(
   }
 
   return (await response.json()) as ConversationMessagesResponse;
+}
+
+export interface JoinConversationResponse {
+  success: boolean;
+  message: ConversationMessage;
+}
+
+export async function joinConversation(
+  token: string,
+  conversationUuid: string,
+  apiUrl?: string
+): Promise<JoinConversationResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationUuid}/join`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const message = await parseErrorMessage(response);
+    throw new Error(message);
+  }
+
+  return (await response.json()) as JoinConversationResponse;
 }
 

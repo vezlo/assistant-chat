@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getConversations, getConversationMessages, joinConversation } from '@/api/conversations';
+import { getConversations, getConversationMessages, joinConversation, sendAgentMessage } from '@/api/conversations';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversations';
 import { formatDistanceToNow } from 'date-fns';
 import { subscribeToConversations, type MessageCreatedPayload, type ConversationCreatedPayload } from '@/services/conversationRealtime';
@@ -14,6 +14,8 @@ export function ConversationsTab() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [messageContent, setMessageContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [newConversationIds, setNewConversationIds] = useState<Set<string>>(new Set());
 
@@ -137,6 +139,22 @@ export function ConversationsTab() {
       setError(err instanceof Error ? err.message : 'Failed to join conversation');
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!token || !selectedConversation || !messageContent.trim()) return;
+
+    setIsSending(true);
+    setError(null);
+    try {
+      await sendAgentMessage(token, selectedConversation.uuid, messageContent.trim());
+      setMessageContent('');
+      // The realtime update will handle UI changes
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -418,7 +436,15 @@ export function ConversationsTab() {
                   : 'border-emerald-300 bg-gray-100'
               }`}>
                 <textarea
-                  disabled={!selectedConversation.joined_at}
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && selectedConversation.joined_at && !isSending) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={!selectedConversation.joined_at || isSending}
                   placeholder={selectedConversation.joined_at ? 'Type your message...' : 'Join the conversation to send messages...'}
                   className={`w-full block bg-transparent px-4 py-3 pr-12 text-sm resize-none focus:outline-none placeholder:text-gray-400 border-none ${
                     selectedConversation.joined_at
@@ -428,9 +454,10 @@ export function ConversationsTab() {
                   rows={3}
                 />
                 <button
-                  disabled={!selectedConversation.joined_at}
+                  onClick={handleSendMessage}
+                  disabled={!selectedConversation.joined_at || isSending || !messageContent.trim()}
                   className={`absolute right-3 bottom-3 p-2 rounded-lg border ${
-                    selectedConversation.joined_at
+                    selectedConversation.joined_at && !isSending && messageContent.trim()
                       ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 cursor-pointer'
                       : 'border-emerald-300 bg-white text-emerald-300 cursor-not-allowed'
                   }`}

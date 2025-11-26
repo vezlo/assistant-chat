@@ -133,3 +133,31 @@ export async function joinConversation(
   return (await response.json()) as JoinConversationResponse;
 }
 
+export async function sendAgentMessage(
+  token: string,
+  conversationUuid: string,
+  content: string,
+  apiUrl?: string
+): Promise<ConversationMessage> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationUuid}/messages/agent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ content }),
+    }
+  );
+
+  if (!response.ok) {
+    const message = await parseErrorMessage(response);
+    throw new Error(message);
+  }
+
+  return (await response.json()) as ConversationMessage;
+}
+

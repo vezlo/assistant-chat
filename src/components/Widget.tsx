@@ -5,6 +5,7 @@ import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
 import { VezloFooter } from './ui/VezloFooter.js';
 import { createConversation, createUserMessage, generateAIResponse } from '../api/index.js';
+import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
 import { THEME } from '../config/theme.js';
 
 export interface WidgetProps {
@@ -41,6 +42,8 @@ export function Widget({
   const [messageFeedback, setMessageFeedback] = useState<{[key: string]: 'like' | 'dislike' | null}>({});
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [conversationUuid, setConversationUuid] = useState<string | null>(null);
+  const [companyUuid, setCompanyUuid] = useState<string | null>(null);
+  const [agentJoined, setAgentJoined] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +95,8 @@ export function Widget({
           }, config.apiUrl);
 
           setConversationUuid(conversation.uuid);
-          console.log('[Widget] Conversation created:', conversation.uuid);
+          setCompanyUuid(conversation.company_uuid);
+          console.log('[Widget] Conversation created:', conversation.uuid, 'Company:', conversation.company_uuid);
 
           // Add welcome message after conversation is created
           const welcomeMsg = {
@@ -123,6 +127,49 @@ export function Widget({
 
     initializeConversation();
   }, [isOpen, conversationUuid, isCreatingConversation, config.welcomeMessage, onMessage, onError]);
+
+  // Subscribe to realtime updates for agent messages
+  useEffect(() => {
+    if (!companyUuid || !conversationUuid) {
+      return;
+    }
+
+    const handleMessageCreated = (payload: MessageCreatedPayload) => {
+      // Only process messages for this conversation
+      if (payload.conversation_uuid !== conversationUuid) {
+        return;
+      }
+
+      const newMessage: ChatMessage = {
+        id: payload.message.uuid,
+        content: payload.message.content,
+        role: payload.message.type === 'agent' ? 'assistant' : payload.message.type,
+        timestamp: new Date(payload.message.created_at),
+      };
+
+      // Handle system message (agent joined)
+      if (payload.message.type === 'system') {
+        setAgentJoined(true);
+        setMessages(prev => [...prev, newMessage]);
+        console.log('[Widget] Agent joined conversation');
+        return;
+      }
+
+      // Handle agent message
+      if (payload.message.type === 'agent') {
+        setMessages(prev => [...prev, newMessage]);
+        console.log('[Widget] Received agent message');
+      }
+    };
+
+    const cleanup = subscribeToConversations(
+      companyUuid,
+      handleMessageCreated,
+      () => {} // No need to handle conversation:created in widget
+    );
+
+    return cleanup;
+  }, [companyUuid, conversationUuid]);
 
   useEffect(() => {
     // Scroll to bottom when messages change or when streaming
@@ -160,38 +207,44 @@ export function Widget({
         )
       );
 
-      // Step 2: Generate AI response
-      // Keep loading indicator visible until AI response is received
-      const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
+      // Step 2: Generate AI response (only if agent hasn't joined)
+      if (!agentJoined) {
+        // Keep loading indicator visible until AI response is received
+        const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
 
-      console.log('[Widget] AI response received:', aiResponse.uuid);
+        console.log('[Widget] AI response received:', aiResponse.uuid);
 
-      // Hide loading indicator now that we have the response
-      setIsLoading(false);
+        // Hide loading indicator now that we have the response
+        setIsLoading(false);
 
-      // Stream the AI response character by character
-      const responseContent = aiResponse.content;
-      setStreamingMessage('');
+        // Stream the AI response character by character
+        const responseContent = aiResponse.content;
+        setStreamingMessage('');
 
-      let currentText = '';
-      const streamInterval = setInterval(() => {
-        if (currentText.length < responseContent.length) {
-          currentText += responseContent[currentText.length];
-          setStreamingMessage(currentText);
-        } else {
-          clearInterval(streamInterval);
-          // Add the complete message to messages array
-          const assistantMessage: ChatMessage = {
-            id: aiResponse.uuid,
-            content: responseContent,
-            role: 'assistant',
-            timestamp: new Date(aiResponse.created_at),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          onMessage?.(assistantMessage);
-          setStreamingMessage('');
-        }
-      }, 15); // 15ms delay between characters for smooth streaming
+        let currentText = '';
+        const streamInterval = setInterval(() => {
+          if (currentText.length < responseContent.length) {
+            currentText += responseContent[currentText.length];
+            setStreamingMessage(currentText);
+          } else {
+            clearInterval(streamInterval);
+            // Add the complete message to messages array
+            const assistantMessage: ChatMessage = {
+              id: aiResponse.uuid,
+              content: responseContent,
+              role: 'assistant',
+              timestamp: new Date(aiResponse.created_at),
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            onMessage?.(assistantMessage);
+            setStreamingMessage('');
+          }
+        }, 15); // 15ms delay between characters for smooth streaming
+      } else {
+        // Agent has joined, don't generate AI response
+        setIsLoading(false);
+        console.log('[Widget] Skipping AI response - agent has joined');
+      }
 
     } catch (error) {
       console.error('[Widget] Error sending message:', error);
@@ -373,52 +426,64 @@ export function Widget({
             {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                className={`flex ${
+                  message.role === 'system' 
+                    ? 'justify-center' 
+                    : message.role === 'user' 
+                    ? 'justify-end' 
+                    : 'justify-start'
+                } animate-fadeIn`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                {message.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 mr-2 border border-emerald-100">
-                    <Bot className="w-4 h-4 text-emerald-600" />
+                {message.role === 'system' ? (
+                  <div className="bg-blue-50 text-blue-700 text-xs px-4 py-2 rounded-full border border-blue-200">
+                    {message.content}
                   </div>
-                )}
-                
-                <div className="flex flex-col max-w-[75%]">
-                  <div
-                    className={`rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
-                      message.role === 'user'
-                        ? 'text-white'
-                        : 'bg-white text-gray-900 border border-gray-200'
-                    }`}
-                    style={{
-                      backgroundColor: message.role === 'user' ? (config.themeColor || THEME.primary.hex) : undefined,
-                      boxShadow: message.role === 'user' 
-                        ? `0 4px 12px ${(config.themeColor || THEME.primary.hex)}4D` // 4D is ~30% opacity
-                        : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
-                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-1">
-                    <p
-                      className={`text-xs ${
-                        message.role === 'user' ? 'text-emerald-100' : 'text-gray-500'
-                      }`}
-                    >
-                      {formatTimestamp(message.timestamp)}
-                    </p>
-                    
+                ) : (
+                  <>
                     {message.role === 'assistant' && (
-                      <div className="flex items-center gap-1 ml-2">
-                        <button
-                          onClick={() => handleFeedback(message.id, 'like')}
-                          className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
-                            messageFeedback[message.id] === 'like'
-                              ? 'text-green-600'
-                              : 'text-gray-400 hover:text-green-600'
+                      <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 mr-2 border border-emerald-100">
+                        <Bot className="w-4 h-4 text-emerald-600" />
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-col max-w-[75%]">
+                      <div
+                        className={`rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
+                          message.role === 'user'
+                            ? 'text-white'
+                            : 'bg-white text-gray-900 border border-gray-200'
+                        }`}
+                        style={{
+                          backgroundColor: message.role === 'user' ? (config.themeColor || THEME.primary.hex) : undefined,
+                          boxShadow: message.role === 'user' 
+                            ? `0 4px 12px ${(config.themeColor || THEME.primary.hex)}4D` // 4D is ~30% opacity
+                            : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        }}
+                      >
+                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                      </div>
+                  
+                      <div className="flex items-center justify-between mt-1">
+                        <p
+                          className={`text-xs ${
+                            message.role === 'user' ? 'text-emerald-100' : 'text-gray-500'
                           }`}
                         >
-                          <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
+                          {formatTimestamp(message.timestamp)}
+                        </p>
+                        
+                        {message.role === 'assistant' && (
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={() => handleFeedback(message.id, 'like')}
+                              className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
+                                messageFeedback[message.id] === 'like'
+                                  ? 'text-green-600'
+                                  : 'text-gray-400 hover:text-green-600'
+                              }`}
+                            >
+                              <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
                         </button>
                         <button
                           onClick={() => handleFeedback(message.id, 'dislike')}
@@ -431,9 +496,11 @@ export function Widget({
                           <ThumbsDown className={`w-4 h-4 ${messageFeedback[message.id] === 'dislike' ? 'fill-current' : ''}`} />
                         </button>
                       </div>
-                    )}
-                  </div>
-                </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
 

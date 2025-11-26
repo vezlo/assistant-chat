@@ -48,7 +48,7 @@ export function ConversationsTab() {
     setIsLoadingConversations(true);
     setError(null);
     try {
-      const response = await getConversations(token, 1, 50);
+      const response = await getConversations(token, 1, 20);
       setConversations(response.conversations);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load conversations');
@@ -63,7 +63,7 @@ export function ConversationsTab() {
     setIsLoadingMessages(true);
     setError(null);
     try {
-      const response = await getConversationMessages(token, conversationUuid, 1, 100);
+      const response = await getConversationMessages(token, conversationUuid, 1, 50);
       setMessages(response.messages.reverse());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load messages');
@@ -105,6 +105,7 @@ export function ConversationsTab() {
       // Update selected conversation state with joined_at and status
       setSelectedConversation(prev => prev ? { 
         ...prev, 
+        message_count: payload.conversation_update.message_count || prev.message_count,
         joined_at: payload.conversation_update.joined_at || prev.joined_at,
         closed_at: payload.conversation_update.closed_at || prev.closed_at,
         status: payload.conversation_update.status || prev.status 
@@ -340,7 +341,7 @@ export function ConversationsTab() {
                 <button 
                   onClick={handleJoinConversation}
                   disabled={isJoining}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
                 >
                   <LogIn className="w-4 h-4" />
                   {isJoining ? 'Joining...' : 'Join Conversation'}
@@ -356,7 +357,7 @@ export function ConversationsTab() {
                 <button 
                   onClick={handleCloseConversation}
                   disabled={isClosing}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
                 >
                   <LogIn className="w-4 h-4 rotate-180" />
                   {isClosing ? 'Closing...' : 'Close Conversation'}
@@ -366,12 +367,6 @@ export function ConversationsTab() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50 p-6">
-              {selectedConversation.closed_at && (
-                <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 border border-red-100 flex items-center justify-between">
-                  <span>Conversation closed by an agent.</span>
-                  <span className="text-xs text-red-500">{new Date(selectedConversation.closed_at).toLocaleString()}</span>
-                </div>
-              )}
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
@@ -404,8 +399,23 @@ export function ConversationsTab() {
                             {msg.type === 'system' ? (
                               /* System Message - Centered */
                               <div className="flex justify-center">
-                                <div className="bg-blue-50 text-blue-700 text-xs px-4 py-2 rounded-full border border-blue-200">
-                                  {msg.content}
+                                <div className={`text-xs px-4 py-2 rounded-full border ${
+                                  msg.content.toLowerCase().includes('closed')
+                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                }`}>
+                                  <div className="flex items-center gap-3">
+                                    <span>{msg.content}</span>
+                                    <span className="text-xs opacity-70">
+                                      {new Date(msg.created_at).toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                        hour: 'numeric',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             ) : msg.type === 'user' ? (

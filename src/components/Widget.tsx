@@ -440,18 +440,6 @@ export function Widget({
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
-            {conversationClosed && (
-              <div className="bg-amber-50 border border-amber-100 text-amber-800 px-4 py-3 rounded-2xl flex flex-col gap-3">
-                <div className="text-sm">This conversation has been closed by the agent.</div>
-                <button
-                  onClick={handleStartNewChat}
-                  className="self-start px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition"
-                  disabled={isCreatingConversation}
-                >
-                  {isCreatingConversation ? 'Starting new chat...' : 'Start New Chat'}
-                </button>
-              </div>
-            )}
             {messages.map((message, index) => (
               <div
                 key={message.id}
@@ -465,8 +453,15 @@ export function Widget({
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {message.role === 'system' ? (
-                  <div className="bg-blue-50 text-blue-700 text-xs px-4 py-2 rounded-full border border-blue-200">
-                    {message.content}
+                  <div className={`text-xs px-4 py-2 rounded-full border ${
+                    message.content.toLowerCase().includes('closed')
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{message.content}</span>
+                      <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -567,7 +562,21 @@ export function Widget({
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Start New Chat Button (when closed) */}
+          {conversationClosed && (
+            <div className="border-t border-gray-200 p-4 bg-white flex justify-center">
+              <button
+                onClick={handleStartNewChat}
+                disabled={isCreatingConversation}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              >
+                {isCreatingConversation ? 'Starting new chat...' : 'Start New Chat'}
+              </button>
+            </div>
+          )}
+
           {/* Input */}
+          {!conversationClosed && (
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-3">
               <input
@@ -596,6 +605,7 @@ export function Widget({
               </button>
             </div>
           </div>
+          )}
 
           {/* Footer */}
           <div className="border-t border-gray-200 px-4 bg-gradient-to-r from-gray-50 to-white" style={{ minHeight: 52 }}>

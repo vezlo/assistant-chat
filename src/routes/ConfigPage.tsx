@@ -47,21 +47,23 @@ export function ConfigPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
-          <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>
-        </div>
+      <div className={activeTab === 'conversations' ? 'transition-all duration-200' : 'max-w-[1400px] mx-auto px-12 py-8 pb-16 transition-all duration-200'}>
+        {activeTab !== 'conversations' && (
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
+            <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>
+          </div>
+        )}
 
         <div className="w-full">
           {/* Configuration Panel */}
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className={`bg-white ${activeTab === 'conversations' ? '' : 'rounded-lg border border-gray-200'}`}>
             {/* Tab Navigation */}
-            <div className="border-b border-gray-200">
+            <div className={`border-b border-gray-200 ${activeTab === 'conversations' ? 'px-8 py-1' : ''}`}>
               <nav className="flex">
                 <button
                   onClick={() => setActiveTab('config')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+                  className={`${activeTab === 'conversations' ? 'px-4 py-2.5' : 'px-6 py-4'} border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'config'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -78,7 +80,7 @@ export function ConfigPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('playground')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+                  className={`${activeTab === 'conversations' ? 'px-4 py-2.5' : 'px-6 py-4'} border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'playground'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -95,7 +97,7 @@ export function ConfigPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('embed')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+                  className={`${activeTab === 'conversations' ? 'px-4 py-2.5' : 'px-6 py-4'} border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'embed'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -112,7 +114,7 @@ export function ConfigPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('conversations')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+                  className={`${activeTab === 'conversations' ? 'px-4 py-2.5' : 'px-6 py-4'} border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
                     activeTab === 'conversations'
                         ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'

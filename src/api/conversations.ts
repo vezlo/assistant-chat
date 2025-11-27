@@ -80,7 +80,7 @@ export async function getConversationMessages(
   token: string,
   conversationUuid: string,
   page = 1,
-  pageSize = 50,
+  pageSize = 6,
   order = 'desc',
   apiUrl?: string
 ): Promise<ConversationMessagesResponse> {

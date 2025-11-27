@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { getConversations, getConversationMessages, joinConversation, closeConversation, sendAgentMessage } from '@/api/conversations';
@@ -12,19 +12,174 @@ export function ConversationsTab() {
   const [selectedConversation, setSelectedConversation] = useState<ConversationListItem | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [isLoadingMoreConversations, setIsLoadingMoreConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [newConversationIds, setNewConversationIds] = useState<Set<string>>(new Set());
+  const [conversationsPage, setConversationsPage] = useState(1);
+  const [hasMoreConversations, setHasMoreConversations] = useState(false);
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const conversationsListRef = useRef<HTMLDivElement>(null);
+  const messagesAreaRef = useRef<HTMLDivElement>(null);
+
+  const loadConversations = useCallback(async (page: number = 1, append: boolean = false) => {
+    if (!token) return;
+    
+    const listElement = conversationsListRef.current;
+    const previousScrollHeight = listElement?.scrollHeight || 0;
+    const previousScrollTop = listElement?.scrollTop || 0;
+    const clientHeight = listElement?.clientHeight || 0;
+    const wasNearBottom = previousScrollHeight - previousScrollTop - clientHeight < 150;
+    
+    if (append) {
+      setIsLoadingMoreConversations(true);
+    } else {
+      setIsLoadingConversations(true);
+    }
+    setError(null);
+    try {
+      const response = await getConversations(token, page, 20);
+      if (append) {
+        setConversations(prev => [...prev, ...response.conversations]);
+      } else {
+        setConversations(response.conversations);
+      }
+      setHasMoreConversations(response.pagination.has_more);
+      setConversationsPage(page);
+      
+      // Maintain scroll position after appending new conversations
+      if (append && listElement) {
+        setTimeout(() => {
+          const newScrollHeight = listElement.scrollHeight;
+          if (wasNearBottom) {
+            // User was at bottom, scroll to new bottom
+            listElement.scrollTop = newScrollHeight - clientHeight;
+          } else {
+            // User was not at bottom, maintain scroll position
+            listElement.scrollTop = previousScrollTop;
+          }
+        }, 0);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load conversations');
+    } finally {
+      if (append) {
+        setIsLoadingMoreConversations(false);
+      } else {
+        setIsLoadingConversations(false);
+      }
+    }
+  }, [token]);
+
+  const loadMessages = useCallback(async (conversationUuid: string, page: number = 1, prepend: boolean = false) => {
+    if (!token) return;
+    
+    if (prepend) {
+      setIsLoadingMoreMessages(true);
+    } else {
+      setIsLoadingMessages(true);
+    }
+    setError(null);
+    try {
+      const response = await getConversationMessages(token, conversationUuid, page, 6);
+      const reversedMessages = response.messages.reverse();
+      
+      if (prepend) {
+        // For pagination: capture scroll position before adding messages
+        const messagesElement = messagesAreaRef.current;
+        const previousScrollHeight = messagesElement?.scrollHeight || 0;
+        
+        setMessages(prev => [...reversedMessages, ...prev]);
+        
+        // After state update, adjust scroll position and push slightly down
+        if (messagesElement) {
+          setTimeout(() => {
+            const newScrollHeight = messagesElement.scrollHeight;
+            const scrollDifference = newScrollHeight - previousScrollHeight;
+            // Push scroll down by adding 150px so user isn't stuck at the top
+            messagesElement.scrollTop = scrollDifference + 150;
+          }, 0);
+        }
+      } else {
+        // For initial load: set messages and scroll to bottom
+        setMessages(reversedMessages);
+      }
+      setHasMoreMessages(response.pagination.has_more);
+      setMessagesPage(page);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load messages');
+    } finally {
+      if (prepend) {
+        setIsLoadingMoreMessages(false);
+      } else {
+        setIsLoadingMessages(false);
+      }
+    }
+  }, [token]);
 
   useEffect(() => {
     if (token) {
-      loadConversations();
+      setConversationsPage(1);
+      setHasMoreConversations(false);
+      loadConversations(1, false);
     }
-  }, [token]);
+  }, [token, loadConversations]);
+
+      // Handle conversations list scroll
+  useEffect(() => {
+    const listElement = conversationsListRef.current;
+    if (!listElement) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listElement;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+      if (isNearBottom && hasMoreConversations && !isLoadingConversations && !isLoadingMoreConversations) {
+        loadConversations(conversationsPage + 1, true);
+      }
+    };
+
+    listElement.addEventListener('scroll', handleScroll);
+    return () => listElement.removeEventListener('scroll', handleScroll);
+  }, [hasMoreConversations, conversationsPage, isLoadingConversations, isLoadingMoreConversations, loadConversations]);
+
+  // Scroll to bottom after initial message load
+  useEffect(() => {
+    const messagesElement = messagesAreaRef.current;
+    if (!messagesElement || isLoadingMessages || messages.length === 0) return;
+    
+    // Only scroll to bottom on initial load (page 1) or when not loading more
+    if (messagesPage === 1 && !isLoadingMoreMessages) {
+      setTimeout(() => {
+        messagesElement.scrollTop = messagesElement.scrollHeight;
+      }, 0);
+    }
+  }, [messages, messagesPage, isLoadingMessages, isLoadingMoreMessages]);
+
+  // Handle messages area scroll
+  useEffect(() => {
+    const messagesElement = messagesAreaRef.current;
+    if (!messagesElement || !selectedConversation) return;
+
+    const handleScroll = () => {
+      const { scrollTop } = messagesElement;
+      // Only trigger when at the very top (within 10px)
+      const isAtTop = scrollTop <= 10;
+
+      if (isAtTop && hasMoreMessages && !isLoadingMessages && !isLoadingMoreMessages) {
+        loadMessages(selectedConversation.uuid, messagesPage + 1, true);
+      }
+    };
+
+    messagesElement.addEventListener('scroll', handleScroll);
+    return () => messagesElement.removeEventListener('scroll', handleScroll);
+  }, [hasMoreMessages, messagesPage, isLoadingMessages, isLoadingMoreMessages, selectedConversation, loadMessages]);
 
   // Subscribe to realtime updates
   useEffect(() => {
@@ -42,39 +197,13 @@ export function ConversationsTab() {
     return cleanup;
   }, [user?.profile?.company_uuid, selectedConversation?.uuid]);
 
-  const loadConversations = async () => {
-    if (!token) return;
-    
-    setIsLoadingConversations(true);
-    setError(null);
-    try {
-      const response = await getConversations(token, 1, 20);
-      setConversations(response.conversations);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversations');
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  };
-
-  const loadMessages = async (conversationUuid: string) => {
-    if (!token) return;
-    
-    setIsLoadingMessages(true);
-    setError(null);
-    try {
-      const response = await getConversationMessages(token, conversationUuid, 1, 50);
-      setMessages(response.messages.reverse());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load messages');
-    } finally {
-      setIsLoadingMessages(false);
-    }
-  };
-
   const handleConversationClick = (conversation: ConversationListItem) => {
+    // Clear messages immediately to show loading state
+    setMessages([]);
     setSelectedConversation(conversation);
-    loadMessages(conversation.uuid);
+    setMessagesPage(1);
+    setHasMoreMessages(false);
+    loadMessages(conversation.uuid, 1, false);
     // Remove "new" badge when clicked
     setNewConversationIds(prev => {
       const updated = new Set(prev);
@@ -232,8 +361,8 @@ export function ConversationsTab() {
     <div className="flex h-[calc(100vh-100px)] bg-gray-50">
       {/* Left Sidebar - Conversations List */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="flex-1 overflow-y-auto">
-          {isLoadingConversations ? (
+        <div className="flex-1 overflow-y-auto" ref={conversationsListRef}>
+          {isLoadingConversations && conversations.length === 0 ? (
             <div className="p-4 text-center text-gray-500">Loading conversations...</div>
           ) : error && conversations.length === 0 ? (
             <div className="p-4 text-center text-red-500 text-sm">{error}</div>
@@ -302,6 +431,14 @@ export function ConversationsTab() {
                   </div>
                 </button>
               ))}
+              {isLoadingMoreConversations && (
+                <div className="p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+                    <div className="w-4 h-4 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                    <span>Loading more conversations...</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -366,8 +503,8 @@ export function ConversationsTab() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50 p-6">
-              {isLoadingMessages ? (
+            <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-gray-50 p-6" ref={messagesAreaRef}>
+              {isLoadingMessages && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-3 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
@@ -383,6 +520,14 @@ export function ConversationsTab() {
                 </div>
               ) : (
                 <div className="max-w-5xl mx-auto space-y-6">
+                  {isLoadingMoreMessages && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <div className="w-4 h-4 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                        <span>Loading older messages...</span>
+                      </div>
+                    </div>
+                  )}
                   {Object.entries(messageGroups).map(([date, msgs]) => (
                     <div key={date}>
                       {/* Date Separator */}

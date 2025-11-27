@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, LogIn, User, Sparkles, Send } from 'lucide-react';
+import { MessageCircle, LogIn, User, Sparkles, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { getConversations, getConversationMessages, joinConversation, closeConversation, sendAgentMessage } from '@/api/conversations';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversations';
@@ -229,7 +229,24 @@ export function ConversationsTab() {
 
     // If this conversation is currently selected, append the message
     if (selectedConversation?.uuid === payload.conversation_uuid) {
-      setMessages(prev => [...prev, payload.message]);
+      setMessages(prev => {
+        // If a pending optimistic message exists, replace it
+        const pendingIndex = prev.findIndex(
+          msg => msg.pending && msg.type === payload.message.type && msg.content === payload.message.content
+        );
+        if (pendingIndex !== -1) {
+          const updated = [...prev];
+          updated[pendingIndex] = { ...payload.message };
+          return updated;
+        }
+
+        const exists = prev.some(msg => msg.uuid === payload.message.uuid);
+        if (exists) {
+          return prev.map(msg => (msg.uuid === payload.message.uuid ? { ...payload.message } : msg));
+        }
+
+        return [...prev, payload.message];
+      });
       
       // Update selected conversation state with joined_at and status
       setSelectedConversation(prev => prev ? { 
@@ -305,15 +322,42 @@ export function ConversationsTab() {
   };
 
   const handleSendMessage = async () => {
-    if (!token || !selectedConversation || !messageContent.trim()) return;
+    if (!token || !selectedConversation) return;
+    const trimmed = messageContent.trim();
+    if (!trimmed) return;
 
+    const tempId = `temp-${Date.now()}`;
+    const tempMessage: ConversationMessage = {
+      uuid: tempId,
+      content: trimmed,
+      type: 'agent',
+      author_id: user?.id ? Number(user.id) : null,
+      created_at: new Date().toISOString(),
+      pending: true,
+    };
+
+    setMessages(prev => [...prev, tempMessage]);
+    setMessageContent('');
     setIsSending(true);
     setError(null);
+
     try {
-      await sendAgentMessage(token, selectedConversation.uuid, messageContent.trim());
-      setMessageContent('');
-      // The realtime update will handle UI changes
+      const savedMessage = await sendAgentMessage(token, selectedConversation.uuid, trimmed);
+      setMessages(prev => {
+        const tempIndex = prev.findIndex(msg => msg.uuid === tempId);
+        if (tempIndex !== -1) {
+          const updated = [...prev];
+          updated[tempIndex] = { ...savedMessage };
+          return updated;
+        }
+        const exists = prev.some(msg => msg.uuid === savedMessage.uuid);
+        if (exists) {
+          return prev.map(msg => (msg.uuid === savedMessage.uuid ? { ...savedMessage } : msg));
+        }
+        return [...prev, savedMessage];
+      });
     } catch (err) {
+      setMessages(prev => prev.filter(msg => msg.uuid !== tempId));
       setError(err instanceof Error ? err.message : 'Failed to send message');
     } finally {
       setIsSending(false);
@@ -609,11 +653,20 @@ export function ConversationsTab() {
                                       {msg.type === 'agent' ? 'Agent' : 'Assistant'}
                                     </span>
                                   </div>
-                                  <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                                  <div
+                                    className={`bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm relative ${
+                                      msg.pending ? 'opacity-70' : ''
+                                    }`}
+                                  >
+                                    {msg.pending && msg.type === 'agent' && (
+                                      <div className="absolute -top-3 right-3 bg-white rounded-full p-1 shadow-sm">
+                                        <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" aria-label="Sending" />
+                                      </div>
+                                    )}
                                     <div className="text-sm text-gray-900 whitespace-pre-wrap break-words leading-relaxed">
                                       {msg.content}
                                     </div>
-                                    <div className="flex items-center justify-end mt-0.5">
+                                    <div className="flex items-center justify-end mt-0.5 gap-2">
                                       <span className="text-[10px] text-gray-400">
                                         {new Date(msg.created_at).toLocaleTimeString('en-US', {
                                           hour: 'numeric',

@@ -32,6 +32,7 @@ export interface ConversationMessage {
   type: 'user' | 'assistant' | 'agent' | 'system';
   author_id: number | null;
   created_at: string;
+  pending?: boolean;
 }
 
 export interface ConversationMessagesResponse {

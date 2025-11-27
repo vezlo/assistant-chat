@@ -212,37 +212,37 @@ export function Widget({
 
       // Step 2: Generate AI response (only if agent hasn't joined)
       if (!agentJoined) {
-        // Keep loading indicator visible until AI response is received
-        const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
+      // Keep loading indicator visible until AI response is received
+      const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
 
-        console.log('[Widget] AI response received:', aiResponse.uuid);
+      console.log('[Widget] AI response received:', aiResponse.uuid);
 
-        // Hide loading indicator now that we have the response
-        setIsLoading(false);
+      // Hide loading indicator now that we have the response
+      setIsLoading(false);
 
-        // Stream the AI response character by character
-        const responseContent = aiResponse.content;
-        setStreamingMessage('');
+      // Stream the AI response character by character
+      const responseContent = aiResponse.content;
+      setStreamingMessage('');
 
-        let currentText = '';
-        const streamInterval = setInterval(() => {
-          if (currentText.length < responseContent.length) {
-            currentText += responseContent[currentText.length];
-            setStreamingMessage(currentText);
-          } else {
-            clearInterval(streamInterval);
-            // Add the complete message to messages array
-            const assistantMessage: ChatMessage = {
-              id: aiResponse.uuid,
-              content: responseContent,
-              role: 'assistant',
-              timestamp: new Date(aiResponse.created_at),
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
-            onMessage?.(assistantMessage);
-            setStreamingMessage('');
-          }
-        }, 15); // 15ms delay between characters for smooth streaming
+      let currentText = '';
+      const streamInterval = setInterval(() => {
+        if (currentText.length < responseContent.length) {
+          currentText += responseContent[currentText.length];
+          setStreamingMessage(currentText);
+        } else {
+          clearInterval(streamInterval);
+          // Add the complete message to messages array
+          const assistantMessage: ChatMessage = {
+            id: aiResponse.uuid,
+            content: responseContent,
+            role: 'assistant',
+            timestamp: new Date(aiResponse.created_at),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          onMessage?.(assistantMessage);
+          setStreamingMessage('');
+        }
+      }, 15); // 15ms delay between characters for smooth streaming
       } else {
         // Agent has joined, don't generate AI response
         setIsLoading(false);
@@ -465,49 +465,49 @@ export function Widget({
                   </div>
                 ) : (
                   <>
-                    {message.role === 'assistant' && (
-                      <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 mr-2 border border-emerald-100">
-                        <Bot className="w-4 h-4 text-emerald-600" />
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-col max-w-[75%]">
-                      <div
-                        className={`rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
-                          message.role === 'user'
-                            ? 'text-white'
-                            : 'bg-white text-gray-900 border border-gray-200'
-                        }`}
-                        style={{
-                          backgroundColor: message.role === 'user' ? (config.themeColor || THEME.primary.hex) : undefined,
-                          boxShadow: message.role === 'user' 
-                            ? `0 4px 12px ${(config.themeColor || THEME.primary.hex)}4D` // 4D is ~30% opacity
-                            : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                        }}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
-                      </div>
+                {message.role === 'assistant' && (
+                  <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 mr-2 border border-emerald-100">
+                    <Bot className="w-4 h-4 text-emerald-600" />
+                  </div>
+                )}
+                
+                <div className="flex flex-col max-w-[75%]">
+                  <div
+                    className={`rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
+                      message.role === 'user'
+                        ? 'text-white'
+                        : 'bg-white text-gray-900 border border-gray-200'
+                    }`}
+                    style={{
+                      backgroundColor: message.role === 'user' ? (config.themeColor || THEME.primary.hex) : undefined,
+                      boxShadow: message.role === 'user' 
+                        ? `0 4px 12px ${(config.themeColor || THEME.primary.hex)}4D` // 4D is ~30% opacity
+                        : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                  </div>
                   
-                      <div className="flex items-center justify-between mt-1">
-                        <p
-                          className={`text-xs ${
-                            message.role === 'user' ? 'text-emerald-100' : 'text-gray-500'
+                  <div className="flex items-center justify-between mt-1">
+                    <p
+                      className={`text-xs ${
+                        message.role === 'user' ? 'text-emerald-100' : 'text-gray-500'
+                      }`}
+                    >
+                      {formatTimestamp(message.timestamp)}
+                    </p>
+                    
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center gap-1 ml-2">
+                        <button
+                          onClick={() => handleFeedback(message.id, 'like')}
+                          className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
+                            messageFeedback[message.id] === 'like'
+                              ? 'text-green-600'
+                              : 'text-gray-400 hover:text-green-600'
                           }`}
                         >
-                          {formatTimestamp(message.timestamp)}
-                        </p>
-                        
-                        {message.role === 'assistant' && (
-                          <div className="flex items-center gap-1 ml-2">
-                            <button
-                              onClick={() => handleFeedback(message.id, 'like')}
-                              className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
-                                messageFeedback[message.id] === 'like'
-                                  ? 'text-green-600'
-                                  : 'text-gray-400 hover:text-green-600'
-                              }`}
-                            >
-                              <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
+                          <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
                         </button>
                         <button
                           onClick={() => handleFeedback(message.id, 'dislike')}
@@ -520,9 +520,9 @@ export function Widget({
                           <ThumbsDown className={`w-4 h-4 ${messageFeedback[message.id] === 'dislike' ? 'fill-current' : ''}`} />
                         </button>
                       </div>
-                        )}
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                </div>
                   </>
                 )}
               </div>

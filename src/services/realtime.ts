@@ -20,9 +20,9 @@ function getClient() {
 
   if (!client) {
     try {
-      client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        realtime: { params: { eventsPerSecond: 2 } },
-      });
+    client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      realtime: { params: { eventsPerSecond: 2 } },
+    });
     } catch (error) {
       console.error('[Realtime] Failed to initialize client:', error instanceof Error ? error.message : 'Unknown error');
       return null;
@@ -54,10 +54,10 @@ export function listenForAuthBroadcast(
   onPayload: (payload: AuthBroadcastPayload) => void
 ): () => void {
   try {
-    const realtimeClient = getClient();
-    if (!realtimeClient) {
-      return () => {};
-    }
+  const realtimeClient = getClient();
+  if (!realtimeClient) {
+    return () => {};
+  }
 
     const channel = realtimeClient.channel('vezlo_authenticated', {
       config: {
@@ -65,9 +65,9 @@ export function listenForAuthBroadcast(
       }
     });
 
-    channel.on('broadcast', { event: 'me_payload' }, ({ payload }) => {
-      onPayload(payload as AuthBroadcastPayload);
-    });
+  channel.on('broadcast', { event: 'me_payload' }, ({ payload }) => {
+    onPayload(payload as AuthBroadcastPayload);
+  });
 
     channel.subscribe((status, err) => {
       if (err) {
@@ -77,15 +77,15 @@ export function listenForAuthBroadcast(
       } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
         console.error('[Realtime] Channel connection failed:', status);
       }
-    });
+  });
 
-    return () => {
+  return () => {
       try {
-        channel.unsubscribe();
+    channel.unsubscribe();
       } catch (error) {
         console.error('[Realtime] Unsubscribe error:', error instanceof Error ? error.message : 'Unknown error');
       }
-    };
+  };
   } catch (error) {
     console.error('[Realtime] Failed to setup broadcast listener:', error instanceof Error ? error.message : 'Unknown error');
     return () => {};

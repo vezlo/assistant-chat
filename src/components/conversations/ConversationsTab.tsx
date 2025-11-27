@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getConversations, getConversationMessages, joinConversation, closeConversation, sendAgentMessage } from '@/api/conversations';
-import type { ConversationListItem, ConversationMessage } from '@/api/conversations';
+import {
+  getConversations,
+  getConversationMessages,
+  joinConversation,
+  closeConversation,
+  sendAgentMessage,
+} from '@/api/conversation';
+import type { ConversationListItem, ConversationMessage } from '@/api/conversation';
 import { formatDistanceToNow } from 'date-fns';
 import { subscribeToConversations, type MessageCreatedPayload, type ConversationCreatedPayload } from '@/services/conversationRealtime';
 

@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@vezlo/assistant-chat.svg)](https://www.npmjs.com/package/@vezlo/assistant-chat) [![license](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 
-A React component library for integrating AI assistant chat functionality into web applications.
+A React component library for integrating AI assistant chat functionality into web applications with realtime updates and human agent support.
 
 > **📦 This is the NPM package documentation**  
 > **🏠 Repository**: [assistant-chat](https://github.com/vezlo/assistant-chat) - Contains both this NPM package and a standalone admin application  
@@ -19,6 +19,7 @@ npm install @vezlo/assistant-chat
 - React 18 or higher
 - Tailwind CSS (for styling)
 - Assistant Server running (see [Assistant Server](https://github.com/vezlo/assistant-server))
+- **Realtime Updates** (Optional): Provide `supabaseUrl` + `supabaseAnonKey` for agent handoff / live message sync. Without these the widget still works, it just won’t receive realtime pushes.
 
 ## Quick Start
 
@@ -37,7 +38,10 @@ function App() {
     themeColor: '#10b981',
     position: 'bottom-right',
     size: { width: 400, height: 600 },
-    defaultOpen: false
+    defaultOpen: false,
+    // Optional realtime config
+    supabaseUrl: 'https://your-project.supabase.co',
+    supabaseAnonKey: 'your-anon-key'
   };
 
   return <Widget config={widgetConfig} />;
@@ -59,6 +63,8 @@ The `WidgetConfig` interface includes:
 - `position`: Widget position ('bottom-right', 'bottom-left', 'top-right', 'top-left')
 - `size`: Widget dimensions
 - `defaultOpen`: Whether widget opens by default
+- `supabaseUrl`: Supabase project URL (optional, required for realtime updates)
+- `supabaseAnonKey`: Supabase anon key (optional, required for realtime updates)
 
 ### Configuration Options Table
 
@@ -75,6 +81,8 @@ The `WidgetConfig` interface includes:
 | `defaultOpen` | boolean | `false` | Whether widget opens by default |
 | `apiUrl` | string | Required | Assistant Server API URL |
 | `apiKey` | string | Required | API key for authentication |
+| `supabaseUrl` | string | Optional | Supabase project URL (for realtime updates) |
+| `supabaseAnonKey` | string | Optional | Supabase anon key (for realtime updates) |
 
 ## API Integration
 
@@ -83,6 +91,7 @@ This widget requires a running Assistant Server instance. The widget will:
 1. Create conversations automatically
 2. Send user messages to the server
 3. Stream AI responses in real-time
+4. **Realtime Updates**: With `supabaseUrl` and `supabaseAnonKey` configured, the widget receives realtime updates for agent handoff and live message synchronization
 
 Configure your Assistant Server URL in your application:
 

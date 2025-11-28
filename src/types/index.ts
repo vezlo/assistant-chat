@@ -16,6 +16,8 @@ export interface WidgetConfig {
   apiKey: string;
   themeColor?: string;
   defaultOpen?: boolean; // New parameter to control default open state
+  supabaseUrl?: string; // Supabase URL for realtime updates
+  supabaseAnonKey?: string; // Supabase anon key for realtime updates
 }
 
 export interface ChatMessage {

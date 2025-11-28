@@ -197,7 +197,9 @@ export function ConversationsTab() {
     const cleanup = subscribeToConversations(
       user.profile.company_uuid,
       handleMessageCreated,
-      handleConversationCreated
+      handleConversationCreated,
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY
     );
 
     return cleanup;

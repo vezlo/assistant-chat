@@ -168,11 +168,13 @@ export function Widget({
     const cleanup = subscribeToConversations(
       companyUuid,
       handleMessageCreated,
-      () => {} // No need to handle conversation:created in widget
+      () => {}, // No need to handle conversation:created in widget
+      config.supabaseUrl,
+      config.supabaseAnonKey
     );
 
     return cleanup;
-  }, [companyUuid, conversationUuid]);
+  }, [companyUuid, conversationUuid, config.supabaseUrl, config.supabaseAnonKey]);
 
   useEffect(() => {
     // Scroll to bottom when messages change or when streaming

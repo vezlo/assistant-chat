@@ -1,21 +1,23 @@
 import { createClient, type SupabaseClient, type RealtimeChannel } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 let client: SupabaseClient | null = null;
+let clientUrl: string | null = null;
+let clientKey: string | null = null;
 
-function getClient() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('[ConversationRealtime] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
+function getClient(supabaseUrl?: string, supabaseAnonKey?: string) {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[ConversationRealtime] Missing supabaseUrl or supabaseAnonKey');
     return null;
   }
 
-  if (!client) {
+  // Recreate the client if credentials change
+  if (!client || clientUrl !== supabaseUrl || clientKey !== supabaseAnonKey) {
     try {
-      client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      client = createClient(supabaseUrl, supabaseAnonKey, {
         realtime: { params: { eventsPerSecond: 2 } },
       });
+      clientUrl = supabaseUrl;
+      clientKey = supabaseAnonKey;
     } catch (error) {
       console.error('[ConversationRealtime] Failed to initialize client:', error instanceof Error ? error.message : 'Unknown error');
       return null;
@@ -56,10 +58,12 @@ export interface ConversationCreatedPayload {
 export function subscribeToConversations(
   companyUuid: string,
   onMessageCreated: (payload: MessageCreatedPayload) => void,
-  onConversationCreated: (payload: ConversationCreatedPayload) => void
+  onConversationCreated: (payload: ConversationCreatedPayload) => void,
+  supabaseUrl?: string,
+  supabaseAnonKey?: string
 ): () => void {
   try {
-    const realtimeClient = getClient();
+    const realtimeClient = getClient(supabaseUrl, supabaseAnonKey);
     if (!realtimeClient) {
       console.error('[ConversationRealtime] Client not available');
       return () => {};

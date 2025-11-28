@@ -13,6 +13,8 @@ export function WidgetPage() {
   // For embed widget: apiUrl comes from environment variable (VITE_ASSISTANT_SERVER_URL)
   // For NPM package: apiUrl should be provided in config
   const defaultApiUrl = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
+  const defaultSupabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const defaultSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig>({
     uuid: uuid || generateId(),
@@ -27,6 +29,8 @@ export function WidgetPage() {
     apiKey: 'your_api_key_here',
     themeColor: THEME.primary.hex, // Modern teal/cyan
     defaultOpen: false, // Default to closed for embedded widgets
+    supabaseUrl: defaultSupabaseUrl,
+    supabaseAnonKey: defaultSupabaseAnonKey,
   });
 
   const [isPlayground, setIsPlayground] = useState(false);
@@ -44,7 +48,9 @@ export function WidgetPage() {
         // If apiUrl is provided in config, use it (for NPM package usage)
         const mergedConfig = {
           ...decodedConfig,
-          apiUrl: decodedConfig.apiUrl || defaultApiUrl
+          apiUrl: decodedConfig.apiUrl || defaultApiUrl,
+          supabaseUrl: decodedConfig.supabaseUrl || defaultSupabaseUrl,
+          supabaseAnonKey: decodedConfig.supabaseAnonKey || defaultSupabaseAnonKey
         };
         setWidgetConfig(prev => ({ ...prev, ...mergedConfig }));
         
@@ -57,7 +63,7 @@ export function WidgetPage() {
         console.error('Failed to parse widget config from URL:', error);
       }
     }
-  }, [location.search, defaultApiUrl]);
+  }, [location.search, defaultApiUrl, defaultSupabaseUrl, defaultSupabaseAnonKey]);
 
   // Hide scrollbars when in iframe mode
   useEffect(() => {

@@ -1,11 +1,19 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { logoutUser } from '@/api';
+import { initializeRealtime } from '@/services/realtime';
 
 interface User {
   name: string;
   email: string;
   avatar?: string;
   id?: string;
+  role?: string;
+  profile?: {
+    company_uuid: string;
+    company_name: string;
+    role: string;
+  };
 }
 
 interface Workspace {
@@ -24,13 +32,14 @@ interface AppContextType {
   setUser: (user: User | null) => void;
   setWorkspace: (workspace: Workspace | null) => void;
   login: (token: string, user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'vezlo_auth_token';
 const USER_KEY = 'vezlo_user';
+const WORKSPACE_KEY = 'vezlo_workspace';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage
@@ -41,9 +50,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem(USER_KEY);
     return storedUser ? JSON.parse(storedUser) : null;
   });
-  const [workspace, setWorkspace] = useState<Workspace | null>({
-    name: 'Vezlo · Workspace',
-    plan: 'Community Edition',
+  const [workspace, setWorkspace] = useState<Workspace | null>(() => {
+    const storedWorkspace = localStorage.getItem(WORKSPACE_KEY);
+    return storedWorkspace ? JSON.parse(storedWorkspace) : null;
   });
   const [activeSection, setActiveSection] = useState('widget');
   const isAuthenticated = !!token && !!user;
@@ -66,17 +75,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (workspace) {
+      localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspace));
+    } else {
+      localStorage.removeItem(WORKSPACE_KEY);
+    }
+  }, [workspace]);
+
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (token) {
+      try {
+        await logoutUser(token);
+      } catch (error) {
+        console.error('[AppContext] Failed to logout via API:', error);
+      }
+    }
     setToken(null);
     setUser(null);
+    setWorkspace(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(WORKSPACE_KEY);
   };
+
+  // Initialize Realtime connection on app load
+  useEffect(() => {
+    initializeRealtime();
+  }, []);
 
   return (
     <AppContext.Provider

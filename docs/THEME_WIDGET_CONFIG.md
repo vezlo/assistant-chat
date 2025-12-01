@@ -92,6 +92,8 @@ The widget reads its configuration from `WidgetConfig` (used both inside the sit
 | `apiKey`         | API key or token passed to the assistant server (if required).                                  |
 | `themeColor`     | Overrides the site-wide `THEME.primary.hex` for this widget instance (header, buttons, bubbles).|
 | `defaultOpen`    | Whether the widget opens automatically on load (handy for playground demos/testing).            |
+| `supabaseUrl`    | Supabase project URL (optional, required for realtime agent handoff + live message sync).        |
+| `supabaseAnonKey`| Supabase anon key (optional, required for realtime updates).                                     |
 
 Any embed or npm consumer can pass these properties to customize the widget without touching the site’s global theme.
 

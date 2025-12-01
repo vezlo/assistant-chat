@@ -18,6 +18,10 @@ Edit the `.env` file with your settings:
 # Assistant Server Configuration
 VITE_ASSISTANT_SERVER_URL=http://localhost:3000
 
+# Realtime Updates (Optional)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
 ```
 
 **Note**: In Vite, environment variables must be prefixed with `VITE_` to be exposed to the client-side code.
@@ -215,6 +219,10 @@ npm run build
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `VITE_ASSISTANT_SERVER_URL` | Assistant Server API URL | `http://localhost:3000` | Yes |
+| `VITE_SUPABASE_URL` | Supabase project URL (for realtime updates) | - | No |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (for realtime updates) | - | No |
 
-**Note**: These are fallback values. In production, you should dynamically set user-specific context through your own backend or session management.
+**Notes**
+- Supabase variables are optional but required for realtime features (agent handoff, live message sync).
+- Without Supabase config, the widget still works but won’t receive realtime updates.
 

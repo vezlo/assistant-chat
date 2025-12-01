@@ -9,6 +9,7 @@ export function Header() {
   const { user, workspace, activeSection, setActiveSection, logout } = useApp();
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -177,15 +178,22 @@ export function Header() {
                     <User className="w-4 h-4 text-gray-500" />
                     Account Settings
                   </button>
-                    <button
-                      onClick={() => {
-                        logout();
-                        navigate('/login');
-                      }}
-                      className="w-full text-left text-sm text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5 transition-colors cursor-pointer border-t border-gray-100 mt-1 pt-2"
-                    >
-                      Logout
-                    </button>
+                <button
+                  onClick={async () => {
+                    if (isLoggingOut) return;
+                    setIsLoggingOut(true);
+                    try {
+                      await logout();
+                      navigate('/login');
+                    } finally {
+                      setIsLoggingOut(false);
+                    }
+                  }}
+                  disabled={isLoggingOut}
+                  className="w-full text-left text-sm text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5 transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-70 border-t border-gray-100 mt-1 pt-2"
+                >
+                  {isLoggingOut ? 'Logging out…' : 'Logout'}
+                </button>
                 </div>
               )}
             </div>

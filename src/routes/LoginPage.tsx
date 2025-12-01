@@ -1,21 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { Logo } from '@/components/ui/Logo';
+import { getCurrentUser, loginUser } from '@/api';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useApp();
+  const { login, isAuthenticated, setWorkspace } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate('/config', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/config', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,26 +25,30 @@ export function LoginPage() {
     setError('');
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      // const data = await response.json();
-      
-      // For now, mock login
-      const mockToken = 'mock_jwt_token_here';
-      const mockUser = {
-        name: 'Admin',
-        email: email || 'admin@vezlo.org',
-        id: '1',
-      };
+      const { access_token } = await loginUser({ email, password });
+      const me = await getCurrentUser(access_token);
 
-      login(mockToken, mockUser);
+      login(access_token, {
+        name: me.user.name,
+        email: me.user.email,
+        id: me.user.uuid,
+        role: me.profile.role,
+        profile: {
+          company_uuid: me.profile.company_uuid,
+          company_name: me.profile.company_name,
+          role: me.profile.role,
+        },
+      });
+
+      setWorkspace({
+        name: me.profile.company_name || 'Workspace',
+        plan: 'Community Edition',
+      });
+
       navigate('/config', { replace: true });
     } catch (err) {
-      setError('Invalid email or password');
+      const message = err instanceof Error ? err.message : 'Unable to sign in. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -109,7 +115,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+              className="w-full bg-emerald-600 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-emerald-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-md hover:shadow-lg"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

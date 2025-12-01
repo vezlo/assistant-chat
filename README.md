@@ -74,6 +74,10 @@ npm run dev
 - **Assistant Server**: Both components require a running Assistant Server
 - Node.js 18+ and npm
 - React 18+ (for package usage)
+- **Realtime Updates** (Optional): For agent handoff + live message sync, provide Supabase Realtime credentials
+  - `VITE_SUPABASE_URL`: Supabase project URL
+  - `VITE_SUPABASE_ANON_KEY`: Supabase anon/public key
+  - Without these, the widget works normally but won’t receive realtime updates
 
 ## Features
 
@@ -82,6 +86,7 @@ npm run dev
 - ✅ TypeScript support
 - ✅ Tailwind CSS styling
 - ✅ Real-time streaming
+- ✅ **Realtime updates** (agent handoff, live message sync)
 - ✅ Customizable themes
 - ✅ Shadow DOM support
 - ✅ API integration included
@@ -92,6 +97,8 @@ npm run dev
 - ✅ Playground testing
 - ✅ Embed code generation
 - ✅ Multiple widget management
+- ✅ **Human agent support** (conversation management, agent handoff)
+- ✅ **Realtime updates** (live message synchronization)
 - ✅ Docker support
 - ✅ Vercel deployment
 
@@ -129,6 +136,9 @@ vercel
 # Set environment variables (required)
 vercel env add VITE_ASSISTANT_SERVER_URL
 vercel env add VITE_ASSISTANT_SERVER_API_KEY
+# Optional: For realtime updates
+vercel env add VITE_SUPABASE_URL
+vercel env add VITE_SUPABASE_ANON_KEY
 
 # Deploy to production
 vercel --prod

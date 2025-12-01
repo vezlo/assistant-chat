@@ -5,6 +5,7 @@ import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
 import { VezloFooter } from './ui/VezloFooter.js';
 import { createConversation, createUserMessage, generateAIResponse } from '../api/index.js';
+import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
 import { THEME } from '../config/theme.js';
 
 export interface WidgetProps {
@@ -41,6 +42,9 @@ export function Widget({
   const [messageFeedback, setMessageFeedback] = useState<{[key: string]: 'like' | 'dislike' | null}>({});
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [conversationUuid, setConversationUuid] = useState<string | null>(null);
+  const [companyUuid, setCompanyUuid] = useState<string | null>(null);
+  const [agentJoined, setAgentJoined] = useState(false);
+  const [conversationClosed, setConversationClosed] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +96,10 @@ export function Widget({
           }, config.apiUrl);
 
           setConversationUuid(conversation.uuid);
-          console.log('[Widget] Conversation created:', conversation.uuid);
+          setCompanyUuid(conversation.company_uuid);
+          setAgentJoined(false);
+          setConversationClosed(false);
+          console.log('[Widget] Conversation created:', conversation.uuid, 'Company:', conversation.company_uuid);
 
           // Add welcome message after conversation is created
           const welcomeMsg = {
@@ -124,13 +131,58 @@ export function Widget({
     initializeConversation();
   }, [isOpen, conversationUuid, isCreatingConversation, config.welcomeMessage, onMessage, onError]);
 
+  // Subscribe to realtime updates for agent messages
+  useEffect(() => {
+    if (!companyUuid || !conversationUuid) {
+      return;
+    }
+
+    const handleMessageCreated = (payload: MessageCreatedPayload) => {
+      if (payload.conversation_uuid !== conversationUuid) {
+        return;
+      }
+
+      const status = payload.conversation_update?.status;
+      if (status === 'in_progress') {
+        setAgentJoined(true);
+        setConversationClosed(false);
+      } else if (status === 'closed') {
+        setAgentJoined(false);
+        setConversationClosed(true);
+      }
+
+      if (payload.message.type !== 'system' && payload.message.type !== 'agent') {
+        return;
+      }
+
+      const newMessage: ChatMessage = {
+        id: payload.message.uuid,
+        content: payload.message.content,
+        role: payload.message.type === 'agent' ? 'assistant' : 'system',
+        timestamp: new Date(payload.message.created_at),
+      };
+
+      setMessages(prev => [...prev, newMessage]);
+    };
+
+    const cleanup = subscribeToConversations(
+      companyUuid,
+      handleMessageCreated,
+      () => {}, // No need to handle conversation:created in widget
+      config.supabaseUrl,
+      config.supabaseAnonKey
+    );
+
+    return cleanup;
+  }, [companyUuid, conversationUuid, config.supabaseUrl, config.supabaseAnonKey]);
+
   useEffect(() => {
     // Scroll to bottom when messages change or when streaming
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingMessage]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading || !conversationUuid) return;
+    if (!input.trim() || isLoading || !conversationUuid || conversationClosed) return;
 
     const userMessageContent = input;
     const userMessage: ChatMessage = {
@@ -160,7 +212,8 @@ export function Widget({
         )
       );
 
-      // Step 2: Generate AI response
+      // Step 2: Generate AI response (only if agent hasn't joined)
+      if (!agentJoined) {
       // Keep loading indicator visible until AI response is received
       const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
 
@@ -192,6 +245,11 @@ export function Widget({
           setStreamingMessage('');
         }
       }, 15); // 15ms delay between characters for smooth streaming
+      } else {
+        // Agent has joined, don't generate AI response
+        setIsLoading(false);
+        console.log('[Widget] Skipping AI response - agent has joined');
+      }
 
     } catch (error) {
       console.error('[Widget] Error sending message:', error);
@@ -210,7 +268,21 @@ export function Widget({
     }
   };
 
+  const handleStartNewChat = () => {
+    if (isCreatingConversation) return;
+    setMessages([]);
+    setStreamingMessage('');
+    setIsLoading(false);
+    setMessageFeedback({});
+    setAgentJoined(false);
+    setConversationClosed(false);
+    setConversationUuid(null);
+    setCompanyUuid(null);
+    setInput('');
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (conversationClosed) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -373,9 +445,28 @@ export function Widget({
             {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                className={`flex ${
+                  message.role === 'system' 
+                    ? 'justify-center' 
+                    : message.role === 'user' 
+                    ? 'justify-end' 
+                    : 'justify-start'
+                } animate-fadeIn`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                {message.role === 'system' ? (
+                  <div className={`text-xs px-4 py-2 rounded-full border ${
+                    message.content.toLowerCase().includes('closed')
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{message.content}</span>
+                      <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
                 {message.role === 'assistant' && (
                   <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center flex-shrink-0 mt-1 mr-2 border border-emerald-100">
                     <Bot className="w-4 h-4 text-emerald-600" />
@@ -434,6 +525,8 @@ export function Widget({
                     )}
                   </div>
                 </div>
+                  </>
+                )}
               </div>
             ))}
 
@@ -471,7 +564,21 @@ export function Widget({
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Start New Chat Button (when closed) */}
+          {conversationClosed && (
+            <div className="border-t border-gray-200 p-4 bg-white flex justify-center">
+              <button
+                onClick={handleStartNewChat}
+                disabled={isCreatingConversation}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              >
+                {isCreatingConversation ? 'Starting new chat...' : 'Start New Chat'}
+              </button>
+            </div>
+          )}
+
           {/* Input */}
+          {!conversationClosed && (
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-3">
               <input
@@ -479,23 +586,28 @@ export function Widget({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={config.placeholder}
-                disabled={isLoading}
+                placeholder={
+                  conversationClosed
+                    ? 'Conversation closed. Start a new chat to continue.'
+                    : config.placeholder
+                }
+                disabled={isLoading || conversationClosed}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm transition-all duration-200 placeholder:text-gray-400"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || conversationClosed}
                 className="text-white px-4 py-3 rounded-2xl transition-all duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-105 disabled:scale-100 min-w-[48px]"
                 style={{ 
                   background: `linear-gradient(to right, ${config.themeColor || THEME.primary.hex}, ${config.themeColor || THEME.primary.hex}dd)`,
-                  opacity: (!input.trim() || isLoading) ? 0.6 : 1
+                  opacity: (!input.trim() || isLoading || conversationClosed) ? 0.6 : 1
                 }}
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
           </div>
+          )}
 
           {/* Footer */}
           <div className="border-t border-gray-200 px-4 bg-gradient-to-r from-gray-50 to-white" style={{ minHeight: 52 }}>

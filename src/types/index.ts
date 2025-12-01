@@ -16,12 +16,14 @@ export interface WidgetConfig {
   apiKey: string;
   themeColor?: string;
   defaultOpen?: boolean; // New parameter to control default open state
+  supabaseUrl?: string; // Supabase URL for realtime updates
+  supabaseAnonKey?: string; // Supabase anon key for realtime updates
 }
 
 export interface ChatMessage {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   timestamp: Date;
   sources?: ChatSource[];
 }

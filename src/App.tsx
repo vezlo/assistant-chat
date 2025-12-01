@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from '@/contexts/AppContext';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ConfigPage } from '@/routes/ConfigPage';
 import { WidgetPage } from '@/routes/WidgetPage';
 import { HomePage } from '@/routes/HomePage';
@@ -21,70 +22,68 @@ function App() {
           <Route path="/widget/:uuid" element={<WidgetPage />} />
           <Route path="/login" element={<LoginPage />} />
           
-          {/* Protected pages with MainLayout */}
-          {/* When ready to enable auth, wrap these with ProtectedRoute */}
           <Route
             path="/"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <ConfigPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/config"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <ConfigPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/knowledge"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <KnowledgePage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/team"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <TeamPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/analytics"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <AnalyticsPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/integrations"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <IntegrationsPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/api-keys"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <ApiKeysPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/settings"
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <SettingsPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
         </Routes>

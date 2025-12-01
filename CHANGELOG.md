@@ -2,27 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.0] - 2025-01-XX
+## [1.3.0] - 2025-12-01
 
 ### Added
-- **Human Agent Support**: Full conversation management interface for human agents
-  - Conversations tab with pagination and realtime updates
-  - Agent handoff: join conversations, send messages, close conversations
-  - Real-time message synchronization between agents and chatbot
-- **Realtime Updates**: Supabase Realtime integration for live message sync
-  - Agent messages appear instantly in chatbot widget
-  - Conversation status updates (open, in_progress, closed)
-  - System messages for agent join/close events
-- **Configurable Supabase**: Support for Supabase credentials via config (npm package) or env vars (embed widget)
-  - `supabaseUrl` and `supabaseAnonKey` config options
-  - Graceful degradation when realtime is unavailable
+- **Human agent support**: Added conversations tab for agents to manage and respond to customer conversations
+- **Realtime updates**: Implemented Supabase Realtime integration for live message synchronization and agent handoff
+- **Configurable Supabase credentials**: Added `supabaseUrl` and `supabaseAnonKey` to `WidgetConfig` for flexible realtime configuration
+- Optimistic UI updates for agent messages with pending state indicators
+- Conversation pagination with infinite scroll for both conversations and messages
+- Modular component architecture: split `ConversationsTab` into `ConversationList` and `ConversationChat` components
 
 ### Changed
-- Refactored conversation management into modular components
-- Optimized realtime subscription handling
-- Improved UI/UX for conversation list and chat interface
+- Refactored realtime service to accept Supabase credentials as parameters instead of environment variables
+- Updated `Widget` component to pass Supabase credentials to realtime subscription
+- Updated `WidgetPage` to set Supabase credentials from environment variables for embed widget
+- Centralized conversation API functions into `conversation.ts` (removed `conversations.ts`)
 
-## [1.2.0] - Previous Release
-
-Initial stable release with core chat widget functionality.
+### Documentation
+- Updated README.md to highlight realtime features and required environment variables
+- Updated PACKAGE_README.md with Supabase configuration options and examples
+- Updated API_INTEGRATION.md with Supabase environment variables reference
+- Updated THEME_WIDGET_CONFIG.md with `supabaseUrl` and `supabaseAnonKey` configuration options
 

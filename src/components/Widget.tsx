@@ -4,7 +4,7 @@ import { Send, X, MessageCircle, Bot, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
 import { VezloFooter } from './ui/VezloFooter.js';
-import { createConversation, createUserMessage, generateAIResponse } from '../api/index.js';
+import { createConversation, createUserMessage, streamAIResponse } from '../api/index.js';
 import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
 import { THEME } from '../config/theme.js';
 
@@ -214,37 +214,95 @@ export function Widget({
 
       // Step 2: Generate AI response (only if agent hasn't joined)
       if (!agentJoined) {
-      // Keep loading indicator visible until AI response is received
-      const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
+        // Initialize streaming state
+        setStreamingMessage('');
+        let accumulatedContent = '';
+        let hasReceivedChunks = false;
+        let streamingComplete = false;
+        const tempMessageId = `streaming-${userMessageResponse.uuid}`;
 
-      console.log('[Widget] AI response received:', aiResponse.uuid);
+        // Stream AI response using SSE
+        await streamAIResponse(
+          userMessageResponse.uuid,
+          {
+            onChunk: (chunk, isDone) => {
+              // Hide loading indicator on first chunk (streaming started)
+              if (!hasReceivedChunks) {
+                hasReceivedChunks = true;
+                setIsLoading(false);
+              }
+              
+              // Accumulate content and update streaming message
+              if (chunk) {
+                accumulatedContent += chunk;
+                setStreamingMessage(accumulatedContent);
+              }
+              
+              // If this is the final chunk (done=true), convert to message immediately
+              if (isDone && !streamingComplete) {
+                streamingComplete = true;
+                
+                // Add message to array with temp ID (shows timestamp/icons)
+                const tempMessage: ChatMessage = {
+                  id: tempMessageId,
+                  content: accumulatedContent,
+                  role: 'assistant',
+                  timestamp: new Date(),
+                };
+                
+                setStreamingMessage('');
+                setMessages((prev) => [...prev, tempMessage]);
+              }
+            },
+            onCompletion: (completionData) => {
+              // Store real UUID in _realUuid field (for feedback) without changing id (no jerk)
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === tempMessageId
+                    ? { ...msg, _realUuid: completionData.uuid }
+                    : msg
+                )
+              );
+              
+              setIsLoading(false);
+              
+              const finalMessage: ChatMessage = {
+                id: completionData.uuid,
+                content: accumulatedContent,
+                role: 'assistant',
+                timestamp: new Date(completionData.created_at),
+              };
+              onMessage?.(finalMessage);
 
-      // Hide loading indicator now that we have the response
-      setIsLoading(false);
+              // Log completion (no content in event anymore)
+              console.log('[Widget] AI response completed:', {
+                uuid: completionData.uuid,
+                parent_message_uuid: completionData.parent_message_uuid,
+                status: completionData.status,
+                created_at: completionData.created_at,
+                accumulated_content_length: accumulatedContent.length
+              });
+            },
+            onError: (errorData) => {
+              // Hide loading indicator
+              setIsLoading(false);
+              
+              // Clear streaming message
+              setStreamingMessage('');
 
-      // Stream the AI response character by character
-      const responseContent = aiResponse.content;
-      setStreamingMessage('');
-
-      let currentText = '';
-      const streamInterval = setInterval(() => {
-        if (currentText.length < responseContent.length) {
-          currentText += responseContent[currentText.length];
-          setStreamingMessage(currentText);
-        } else {
-          clearInterval(streamInterval);
-          // Add the complete message to messages array
-          const assistantMessage: ChatMessage = {
-            id: aiResponse.uuid,
-            content: responseContent,
-            role: 'assistant',
-            timestamp: new Date(aiResponse.created_at),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          onMessage?.(assistantMessage);
-          setStreamingMessage('');
-        }
-      }, 15); // 15ms delay between characters for smooth streaming
+              // Show error to user
+              const errorMessage = errorData.message || errorData.error || 'Failed to generate response';
+              onError?.(errorMessage);
+              
+              console.error('[Widget] AI response error:', errorData);
+            },
+            onDone: () => {
+              // Ensure loading is hidden
+              setIsLoading(false);
+            },
+          },
+          config.apiUrl
+        );
       } else {
         // Agent has joined, don't generate AI response
         setIsLoading(false);
@@ -290,10 +348,26 @@ export function Widget({
   };
 
   const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
+    // Find the message to get the real UUID (might be stored in _realUuid)
+    const message = messages.find(m => m.id === messageId);
+    const realUuid = message?._realUuid || messageId; // Use real UUID if available, fallback to ID
+    
+    // Log the UUID that will be sent to backend
+    console.log('[Widget] Feedback submitted:', {
+      displayId: messageId,
+      realUuid: realUuid,
+      feedbackType: type,
+      hasRealUuid: !!message?._realUuid
+    });
+    
+    // Update UI feedback state (uses display ID for UI tracking)
     setMessageFeedback(prev => ({
       ...prev,
       [messageId]: prev[messageId] === type ? null : type
     }));
+    
+    // TODO: Send feedback to backend using realUuid
+    // Example: await submitFeedback(realUuid, type);
   };
 
   const handleOpenWidget = () => {

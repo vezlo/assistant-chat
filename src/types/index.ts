@@ -26,6 +26,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   timestamp: Date;
   sources?: ChatSource[];
+  _realUuid?: string; // Internal field for tracking real message UUID during streaming
 }
 
 export interface ChatSource {

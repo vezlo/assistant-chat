@@ -10,7 +10,7 @@ A complete chat widget solution with both a React component library and standalo
 - **Reusable React Widget**: Install via `npm install @vezlo/assistant-chat`
 - **TypeScript Support**: Full type definitions included
 - **Customizable**: Themes, colors, positioning, and behavior
-- **Real-time Streaming**: Live AI responses with streaming support
+- **Real-time Streaming**: Live AI responses with Server-Sent Events (SSE) streaming support
 - **Style Isolation**: Shadow DOM support for conflict-free integration
 - **📖 [Complete Package Documentation](PACKAGE_README.md)**
 
@@ -85,7 +85,7 @@ npm run dev
 - ✅ React component library
 - ✅ TypeScript support
 - ✅ Tailwind CSS styling
-- ✅ Real-time streaming
+- ✅ Real-time streaming (SSE-based backend streaming)
 - ✅ **Realtime updates** (agent handoff, live message sync)
 - ✅ Customizable themes
 - ✅ Shadow DOM support

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-12-05
+
+### Added
+- **Server-Sent Events (SSE) streaming**: Real-time streaming of AI responses using SSE protocol
+- **Feedback API integration**: Submit and delete feedback for messages with optimistic UI updates
+- **Auto-focus input**: Message input field automatically focuses after assistant message completes
+- **Improved cursor styling**: Pointer cursor on interactive elements (chatbot icon, close button)
+
+### Changed
+- **Streaming implementation**: Migrated from frontend-simulated streaming to backend SSE streaming for smoother, real-time responses
+- **Message UUID handling**: Added `_realUuid` field to track real message UUIDs during streaming to prevent feedback race conditions
+- **Error handling**: Enhanced error handling for streaming failures with proper user feedback
+- **Feedback buttons**: Disabled feedback buttons until message UUID is available to prevent race conditions
+
+### Fixed
+- **UI "jerk" issue**: Eliminated UI re-renders and jerks when streaming completes
+- **Feedback race condition**: Fixed issue where feedback was sent with temporary message IDs
+- **Multiple Supabase client warning**: Disabled session persistence for realtime client to prevent duplicate client warnings
+
 ## [1.3.0] - 2025-12-01
 
 ### Added

@@ -90,7 +90,7 @@ This widget requires a running Assistant Server instance. The widget will:
 
 1. Create conversations automatically
 2. Send user messages to the server
-3. Stream AI responses in real-time
+3. Stream AI responses in real-time using Server-Sent Events (SSE)
 4. **Realtime Updates**: With `supabaseUrl` and `supabaseAnonKey` configured, the widget receives realtime updates for agent handoff and live message synchronization
 
 Configure your Assistant Server URL in your application:

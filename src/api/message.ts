@@ -264,4 +264,95 @@ export async function streamAIResponse(
   }
 }
 
+/**
+ * Feedback API
+ */
+
+export interface SubmitFeedbackRequest {
+  message_uuid: string;
+  rating: 'positive' | 'negative';
+  category?: string;
+  comment?: string;
+  suggested_improvement?: string;
+}
+
+export interface SubmitFeedbackResponse {
+  success: boolean;
+  feedback: {
+    uuid: string;
+    message_uuid: string;
+    rating: 'positive' | 'negative';
+    category?: string;
+    comment?: string;
+    suggested_improvement?: string;
+    created_at: string;
+  };
+}
+
+export interface DeleteFeedbackResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Submit feedback for a message (create or update) - Public API
+ */
+export async function submitFeedback(
+  request: SubmitFeedbackRequest,
+  apiUrl?: string
+): Promise<SubmitFeedbackResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to submit feedback: ${response.status}`);
+    }
+
+    const data: SubmitFeedbackResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[Message API] Error submitting feedback:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete/undo feedback for a message - Public API
+ */
+export async function deleteFeedback(
+  feedbackUuid: string,
+  apiUrl?: string
+): Promise<DeleteFeedbackResponse> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackUuid}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to delete feedback: ${response.status}`);
+    }
+
+    const data: DeleteFeedbackResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('[Message API] Error deleting feedback:', error);
+    throw error;
+  }
+}
 

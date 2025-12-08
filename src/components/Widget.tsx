@@ -4,7 +4,8 @@ import { Send, X, MessageCircle, Bot, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
 import { VezloFooter } from './ui/VezloFooter.js';
-import { createConversation, createUserMessage, generateAIResponse } from '../api/index.js';
+import { createConversation, createUserMessage, streamAIResponse } from '../api/index.js';
+import { submitFeedback, deleteFeedback } from '../api/message.js';
 import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
 import { THEME } from '../config/theme.js';
 
@@ -40,6 +41,7 @@ export function Widget({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<{[key: string]: 'like' | 'dislike' | null}>({});
+  const [messageFeedbackUuids, setMessageFeedbackUuids] = useState<{[key: string]: string}>({});
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [conversationUuid, setConversationUuid] = useState<string | null>(null);
   const [companyUuid, setCompanyUuid] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export function Widget({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const shadowRef = useRef<ShadowRoot | null>(null);
   const shadowMountRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [shadowReady, setShadowReady] = useState(false);
 
   useEffect(() => {
@@ -130,6 +133,14 @@ export function Widget({
 
     initializeConversation();
   }, [isOpen, conversationUuid, isCreatingConversation, config.welcomeMessage, onMessage, onError]);
+
+  // Auto-focus input when it becomes enabled (isLoading becomes false)
+  useEffect(() => {
+    if (isOpen && !isLoading && !conversationClosed && inputRef.current) {
+      // Focus immediately when input becomes enabled
+      inputRef.current.focus();
+    }
+  }, [isLoading, isOpen, conversationClosed]);
 
   // Subscribe to realtime updates for agent messages
   useEffect(() => {
@@ -214,37 +225,95 @@ export function Widget({
 
       // Step 2: Generate AI response (only if agent hasn't joined)
       if (!agentJoined) {
-      // Keep loading indicator visible until AI response is received
-      const aiResponse = await generateAIResponse(userMessageResponse.uuid, config.apiUrl);
+        // Initialize streaming state
+        setStreamingMessage('');
+        let accumulatedContent = '';
+        let hasReceivedChunks = false;
+        let streamingComplete = false;
+        const tempMessageId = `streaming-${userMessageResponse.uuid}`;
 
-      console.log('[Widget] AI response received:', aiResponse.uuid);
+        // Stream AI response using SSE
+        await streamAIResponse(
+          userMessageResponse.uuid,
+          {
+            onChunk: (chunk, isDone) => {
+              // Hide loading indicator on first chunk (streaming started)
+              if (!hasReceivedChunks) {
+                hasReceivedChunks = true;
+                setIsLoading(false);
+              }
+              
+              // Accumulate content and update streaming message
+              if (chunk) {
+                accumulatedContent += chunk;
+                setStreamingMessage(accumulatedContent);
+              }
+              
+              // If this is the final chunk (done=true), convert to message immediately
+              if (isDone && !streamingComplete) {
+                streamingComplete = true;
+                
+                // Add message to array with temp ID (shows timestamp/icons)
+                const tempMessage: ChatMessage = {
+                  id: tempMessageId,
+                  content: accumulatedContent,
+                  role: 'assistant',
+                  timestamp: new Date(),
+                };
+                
+                setStreamingMessage('');
+                setMessages((prev) => [...prev, tempMessage]);
+              }
+            },
+            onCompletion: (completionData) => {
+              // Store real UUID in _realUuid field (for feedback) without changing id (no jerk)
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === tempMessageId
+                    ? { ...msg, _realUuid: completionData.uuid }
+                    : msg
+                )
+              );
+              
+              setIsLoading(false);
+              
+              const finalMessage: ChatMessage = {
+                id: completionData.uuid,
+                content: accumulatedContent,
+                role: 'assistant',
+                timestamp: new Date(completionData.created_at),
+              };
+              onMessage?.(finalMessage);
 
-      // Hide loading indicator now that we have the response
-      setIsLoading(false);
+              // Log completion (no content in event anymore)
+              console.log('[Widget] AI response completed:', {
+                uuid: completionData.uuid,
+                parent_message_uuid: completionData.parent_message_uuid,
+                status: completionData.status,
+                created_at: completionData.created_at,
+                accumulated_content_length: accumulatedContent.length
+              });
+            },
+            onError: (errorData) => {
+              // Hide loading indicator
+              setIsLoading(false);
+              
+              // Clear streaming message
+              setStreamingMessage('');
 
-      // Stream the AI response character by character
-      const responseContent = aiResponse.content;
-      setStreamingMessage('');
-
-      let currentText = '';
-      const streamInterval = setInterval(() => {
-        if (currentText.length < responseContent.length) {
-          currentText += responseContent[currentText.length];
-          setStreamingMessage(currentText);
-        } else {
-          clearInterval(streamInterval);
-          // Add the complete message to messages array
-          const assistantMessage: ChatMessage = {
-            id: aiResponse.uuid,
-            content: responseContent,
-            role: 'assistant',
-            timestamp: new Date(aiResponse.created_at),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          onMessage?.(assistantMessage);
-          setStreamingMessage('');
-        }
-      }, 15); // 15ms delay between characters for smooth streaming
+              // Show error to user
+              const errorMessage = errorData.message || errorData.error || 'Failed to generate response';
+              onError?.(errorMessage);
+              
+              console.error('[Widget] AI response error:', errorData);
+            },
+            onDone: () => {
+              // Ensure loading is hidden
+              setIsLoading(false);
+            },
+          },
+          config.apiUrl
+        );
       } else {
         // Agent has joined, don't generate AI response
         setIsLoading(false);
@@ -289,11 +358,96 @@ export function Widget({
     }
   };
 
-  const handleFeedback = (messageId: string, type: 'like' | 'dislike') => {
-    setMessageFeedback(prev => ({
-      ...prev,
-      [messageId]: prev[messageId] === type ? null : type
-    }));
+  const handleFeedback = async (messageId: string, type: 'like' | 'dislike') => {
+    // Find the message to get the real UUID (might be stored in _realUuid)
+    const message = messages.find(m => m.id === messageId);
+    
+    // Safety check: Don't proceed if message has temp ID and no real UUID yet
+    if (!message?._realUuid && messageId.startsWith('streaming-')) {
+      console.warn('[Widget] Cannot submit feedback: Message UUID not yet available');
+      return;
+    }
+    
+    const realUuid = message?._realUuid || messageId; // Use real UUID if available, fallback to ID
+    
+    const currentFeedback = messageFeedback[messageId];
+    const feedbackUuid = messageFeedbackUuids[messageId];
+    
+    // Map UI types to backend rating values
+    const rating = type === 'like' ? 'positive' : 'negative';
+    
+    // Optimistic UI update - update immediately for better UX
+    const previousFeedback = currentFeedback;
+    const previousUuid = feedbackUuid;
+    
+    // If clicking the same rating again, delete (undo)
+    if (currentFeedback === type && feedbackUuid) {
+      // Optimistically update UI (remove feedback)
+      setMessageFeedback(prev => ({
+        ...prev,
+        [messageId]: null
+      }));
+      setMessageFeedbackUuids(prev => {
+        const updated = { ...prev };
+        delete updated[messageId];
+        return updated;
+      });
+      
+      // Call API in background
+      try {
+        await deleteFeedback(feedbackUuid, config.apiUrl);
+      } catch (error) {
+        console.error('[Widget] Error deleting feedback:', error);
+        // Revert UI state on error
+        setMessageFeedback(prev => ({
+          ...prev,
+          [messageId]: previousFeedback
+        }));
+        setMessageFeedbackUuids(prev => ({
+          ...prev,
+          [messageId]: previousUuid
+        }));
+      }
+    } else {
+      // Optimistically update UI (add/change feedback)
+      setMessageFeedback(prev => ({
+        ...prev,
+        [messageId]: type
+      }));
+      
+      // Call API in background
+      try {
+        const response = await submitFeedback(
+          {
+            message_uuid: realUuid,
+            rating,
+          },
+          config.apiUrl
+        );
+        
+        // Update with real feedback UUID from server
+        setMessageFeedbackUuids(prev => ({
+          ...prev,
+          [messageId]: response.feedback.uuid
+        }));
+      } catch (error) {
+        console.error('[Widget] Error submitting feedback:', error);
+        // Revert UI state on error
+        setMessageFeedback(prev => ({
+          ...prev,
+          [messageId]: previousFeedback
+        }));
+        setMessageFeedbackUuids(prev => {
+          if (previousUuid) {
+            return { ...prev, [messageId]: previousUuid };
+          } else {
+            const updated = { ...prev };
+            delete updated[messageId];
+            return updated;
+          }
+        });
+      }
+    }
   };
 
   const handleOpenWidget = () => {
@@ -385,7 +539,8 @@ export function Widget({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              cursor: 'pointer'
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)';
@@ -434,7 +589,7 @@ export function Widget({
             </div>
             <button
               onClick={handleCloseWidget}
-              className="hover:bg-white/20 rounded-lg p-2 transition-all duration-200 hover:scale-110 relative z-10"
+              className="hover:bg-white/20 rounded-lg p-2 transition-all duration-200 hover:scale-110 relative z-10 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -499,30 +654,50 @@ export function Widget({
                       {formatTimestamp(message.timestamp)}
                     </p>
                     
-                    {message.role === 'assistant' && (
-                      <div className="flex items-center gap-1 ml-2">
-                        <button
-                          onClick={() => handleFeedback(message.id, 'like')}
-                          className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
-                            messageFeedback[message.id] === 'like'
-                              ? 'text-green-600'
-                              : 'text-gray-400 hover:text-green-600'
-                          }`}
-                        >
-                          <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
-                        </button>
-                        <button
-                          onClick={() => handleFeedback(message.id, 'dislike')}
-                          className={`p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer ${
-                            messageFeedback[message.id] === 'dislike'
-                              ? 'text-red-600'
-                              : 'text-gray-400 hover:text-red-600'
-                          }`}
-                        >
-                          <ThumbsDown className={`w-4 h-4 ${messageFeedback[message.id] === 'dislike' ? 'fill-current' : ''}`} />
-                        </button>
-                      </div>
-                    )}
+                    {message.role === 'assistant' && (() => {
+                      // Check if message has real UUID (not temp ID)
+                      // Disable if: message has temp ID (starts with 'streaming-') AND no _realUuid yet
+                      const isTempId = message.id?.startsWith('streaming-') || false;
+                      const hasRealUuid = !!message._realUuid;
+                      const isDisabled = isTempId && !hasRealUuid;
+                      
+                      return (
+                        <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={() => !isDisabled && handleFeedback(message.id, 'like')}
+                            disabled={isDisabled}
+                            className={`p-1 rounded transition-all duration-200 ${
+                              isDisabled
+                                ? 'opacity-40 cursor-not-allowed'
+                                : 'hover:scale-110 cursor-pointer'
+                            } ${
+                              messageFeedback[message.id] === 'like'
+                                ? 'text-green-600'
+                                : 'text-gray-400 hover:text-green-600'
+                            }`}
+                            title={isDisabled ? 'Waiting for message to be saved...' : 'Like this response'}
+                          >
+                            <ThumbsUp className={`w-4 h-4 ${messageFeedback[message.id] === 'like' ? 'fill-current' : ''}`} />
+                          </button>
+                          <button
+                            onClick={() => !isDisabled && handleFeedback(message.id, 'dislike')}
+                            disabled={isDisabled}
+                            className={`p-1 rounded transition-all duration-200 ${
+                              isDisabled
+                                ? 'opacity-40 cursor-not-allowed'
+                                : 'hover:scale-110 cursor-pointer'
+                            } ${
+                              messageFeedback[message.id] === 'dislike'
+                                ? 'text-red-600'
+                                : 'text-gray-400 hover:text-red-600'
+                            }`}
+                            title={isDisabled ? 'Waiting for message to be saved...' : 'Dislike this response'}
+                          >
+                            <ThumbsDown className={`w-4 h-4 ${messageFeedback[message.id] === 'dislike' ? 'fill-current' : ''}`} />
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
                   </>
@@ -582,6 +757,7 @@ export function Widget({
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-3">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

@@ -14,6 +14,11 @@ function getClient(supabaseUrl?: string, supabaseAnonKey?: string) {
   if (!client || clientUrl !== supabaseUrl || clientKey !== supabaseAnonKey) {
     try {
       client = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: false, // Prevent multiple auth instances warning
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        },
         realtime: { params: { eventsPerSecond: 2 } },
       });
       clientUrl = supabaseUrl;

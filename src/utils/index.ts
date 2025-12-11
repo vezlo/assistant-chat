@@ -52,4 +52,8 @@ export function debugLog(message: string, data?: any) {
   }
 }
 
-
+// Helper to parse error messages from API responses
+export const parseErrorMessage = async (response: Response) => {
+  const data = await response.json().catch(() => ({}));
+  return (data as { error?: string; message?: string }).error || (data as { error?: string; message?: string }).message || 'Unexpected server error';
+};

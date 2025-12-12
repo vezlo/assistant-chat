@@ -6,8 +6,6 @@ import { WidgetPage } from '@/routes/WidgetPage';
 import { HomePage } from '@/routes/HomePage';
 import { LoginPage } from '@/routes/LoginPage';
 import { TeamPage } from '@/routes/TeamPage';
-import { AnalyticsPage } from '@/routes/AnalyticsPage';
-import { KnowledgePage } from '@/routes/KnowledgePage';
 import { IntegrationsPage } from '@/routes/IntegrationsPage';
 import { ApiKeysPage } from '@/routes/ApiKeysPage';
 import { SettingsPage } from '@/routes/SettingsPage';
@@ -39,26 +37,10 @@ function App() {
             }
           />
           <Route
-            path="/knowledge"
-            element={
-              <ProtectedRoute>
-                <KnowledgePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/team"
             element={
               <ProtectedRoute>
                 <TeamPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <AnalyticsPage />
               </ProtectedRoute>
             }
           />

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2025-12-12
+
+### Changed
+- **Analytics Dashboard**: Moved Analytics from a standalone page to a dedicated tab within the Configuration dashboard
+- **Navigation**: Updated application navigation structure to nest analytics under configuration
+- **UI Architecture**: Refactored Configuration page with modular tab components (`AnalyticsTab`, `TabButton`) for better maintainability
+
 ## [1.4.0] - 2025-12-05
 
 ### Added

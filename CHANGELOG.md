@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2025-12-12
+
+### Added
+- **AI Settings Tab**: Added dedicated "AI Settings" tab to Config dashboard for managing AI behavior
+- **Response Mode**: Added ability to switch between "User" (conversational) and "Developer" (technical) response modes for the AI assistant
+
+### Changed
+- **Navigation**: Updated application navigation structure to nest AI settings under configuration
+- **UI Architecture**: Added `AISettingsTab` to the modular configuration page architecture
+
 ## [1.5.0] - 2025-12-12
 
 ### Changed

@@ -16,9 +16,7 @@ export function Header() {
 
   const primaryNav = [
     { label: 'Chat Assistant', href: '/config', key: 'widget' },
-    { label: 'Knowledge', key: 'knowledge', href: '/knowledge' },
     { label: 'Team', key: 'team', href: '/team' },
-    { label: 'Analytics', key: 'analytics', href: '/analytics' },
     { label: 'Integrations', key: 'integrations', href: '/integrations' },
     { label: 'API Keys', key: 'api-keys', href: '/api-keys' },
     { label: 'Settings', key: 'settings', href: '/settings' },

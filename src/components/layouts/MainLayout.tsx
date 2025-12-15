@@ -9,7 +9,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="mt-5">
+      <main>
         {children}
       </main>
     </div>

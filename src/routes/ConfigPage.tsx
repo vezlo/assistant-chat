@@ -1,11 +1,42 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, type LucideIcon } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
 import { THEME } from '@/config/theme';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import { ConversationsTab } from '@/components/conversations/ConversationsTab';
+import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
+
+interface TabButtonProps {
+  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics';
+  activeTab: string;
+  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics') => void;
+  icon: LucideIcon;
+  label: string;
+}
+
+function TabButton({ id, activeTab, onClick, icon: Icon, label }: TabButtonProps) {
+  return (
+    <button
+      onClick={() => onClick(id)}
+      className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
+        activeTab === id
+          ? 'border-emerald-600 text-emerald-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      <Icon
+        className={`w-4 h-4 transition-colors ${
+          activeTab === id
+            ? 'text-emerald-600'
+            : 'text-gray-400 group-hover:text-emerald-600'
+        }`}
+      />
+      {label}
+    </button>
+  );
+}
 
 export function ConfigPage() {
   const [config, setConfig] = useState<WidgetConfig>({
@@ -24,7 +55,7 @@ export function ConfigPage() {
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics'>('config');
 
 
   const generateEmbedCode = () => {
@@ -47,7 +78,7 @@ export function ConfigPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
+      <div className="max-w-[1400px] mx-auto px-12 py-8 pb-24">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Configure Your Chat Assistant</h1>
           <p className="text-gray-600">Customize your Vezlo assistant and get the embed code</p>
@@ -59,79 +90,46 @@ export function ConfigPage() {
             {/* Tab Navigation */}
             <div className="border-b border-gray-200">
               <nav className="flex">
-                <button
-                  onClick={() => setActiveTab('config')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
-                    activeTab === 'config'
-                        ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Settings
-                    className={`w-4 h-4 transition-colors ${
-                      activeTab === 'config'
-                        ? 'text-emerald-600'
-                        : 'text-gray-400 group-hover:text-emerald-600'
-                    }`}
-                  />
-                  Configuration
-                </button>
-                <button
-                  onClick={() => setActiveTab('playground')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
-                    activeTab === 'playground'
-                        ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Play
-                    className={`w-4 h-4 transition-colors ${
-                      activeTab === 'playground'
-                        ? 'text-emerald-600'
-                        : 'text-gray-400 group-hover:text-emerald-600'
-                    }`}
-                  />
-                  Playground
-                </button>
-                <button
-                  onClick={() => setActiveTab('embed')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
-                    activeTab === 'embed'
-                        ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Code2
-                    className={`w-4 h-4 transition-colors ${
-                      activeTab === 'embed'
-                        ? 'text-emerald-600'
-                        : 'text-gray-400 group-hover:text-emerald-600'
-                    }`}
-                  />
-                  Embed
-                </button>
-                <button
-                  onClick={() => setActiveTab('conversations')}
-                  className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
-                    activeTab === 'conversations'
-                        ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <MessageSquare
-                    className={`w-4 h-4 transition-colors ${
-                      activeTab === 'conversations'
-                        ? 'text-emerald-600'
-                        : 'text-gray-400 group-hover:text-emerald-600'
-                    }`}
-                  />
-                  Conversations
-                </button>
+                <TabButton 
+                  id="config" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={Settings} 
+                  label="Configuration" 
+                />
+                <TabButton 
+                  id="playground" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={Play} 
+                  label="Playground" 
+                />
+                <TabButton 
+                  id="embed" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={Code2} 
+                  label="Embed" 
+                />
+                <TabButton 
+                  id="conversations" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={MessageSquare} 
+                  label="Conversations" 
+                />
+                <TabButton 
+                  id="analytics" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={BarChart3} 
+                  label="Analytics" 
+                />
               </nav>
             </div>
 
             {/* Tab Content */}
-            <div className={activeTab === 'playground' || activeTab === 'conversations' ? '' : 'p-6'}>
+            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' ? '' : 'p-6'}>
               {activeTab === 'config' && (
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Configuration Form */}
@@ -303,6 +301,10 @@ export function ConfigPage() {
 
               {activeTab === 'conversations' && (
                 <ConversationsTab />
+              )}
+
+              {activeTab === 'analytics' && (
+                <AnalyticsTab />
               )}
 
               {activeTab === 'embed' && (

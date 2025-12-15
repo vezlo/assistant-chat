@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, type LucideIcon } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, Sparkles, type LucideIcon } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
@@ -7,6 +7,7 @@ import { THEME } from '@/config/theme';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
+import { AISettingsTab } from '@/components/settings/AISettingsTab';
 
 interface TabButtonProps {
   id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics';
@@ -15,30 +16,6 @@ interface TabButtonProps {
   icon: LucideIcon;
   label: string;
 }
-
-function TabButton({ id, activeTab, onClick, icon: Icon, label }: TabButtonProps) {
-  return (
-    <button
-      onClick={() => onClick(id)}
-      className={`px-6 py-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors group cursor-pointer ${
-        activeTab === id
-          ? 'border-emerald-600 text-emerald-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700'
-      }`}
-    >
-      <Icon
-        className={`w-4 h-4 transition-colors ${
-          activeTab === id
-            ? 'text-emerald-600'
-            : 'text-gray-400 group-hover:text-emerald-600'
-        }`}
-      />
-      {label}
-    </button>
-  );
-}
-import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
-import { AISettingsTab } from '@/components/settings/AISettingsTab';
 
 interface TabButtonProps {
   id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'ai-settings';

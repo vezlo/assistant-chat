@@ -4,10 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [1.5.0] - 2025-12-12
 
+### Added
+- **Analytics Dashboard**: Comprehensive analytics tab with company-wide statistics
+- **Message Breakdown**: Detailed breakdown showing user messages, AI assistant messages, and human agent messages
+- **Total Messages**: Aggregated message count excluding system messages (e.g., "user joined", "conversation closed")
+- **Interactive Tooltips**: Help icons with tooltips explaining each statistic for better user understanding
+- **Enhanced UI**: Improved analytics layout with gradient cards, better spacing, and professional design
+- **Full-page Loading States**: Loading skeletons for all analytics sections (top stats, message breakdown, conversation status, feedback)
+
 ### Changed
-- **Analytics Dashboard**: Moved Analytics from a standalone page to a dedicated tab within the Configuration dashboard
+- **Analytics Location**: Moved Analytics from standalone page to dedicated tab within Configuration dashboard
 - **Navigation**: Updated application navigation structure to nest analytics under configuration
 - **UI Architecture**: Refactored Configuration page with modular tab components (`AnalyticsTab`, `TabButton`) for better maintainability
+- **Message Display**: Changed from "User Messages" to "Total Messages" showing combined count of all message types
+- **Layout**: Improved analytics layout with 3-row structure: aggregated stats → message breakdown → conversation status & feedback
+- **Icons**: Enhanced message breakdown icons (MessageSquareText, Sparkles, UserCheck) for better visual distinction
+
+### Fixed
+- **Error Handling**: Comprehensive null checks and fallback values (defaults to 0) for all statistics
+- **Data Accuracy**: Total message count now correctly excludes system messages from calculations
 
 ## [1.4.0] - 2025-12-05
 

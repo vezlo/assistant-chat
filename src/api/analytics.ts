@@ -13,11 +13,12 @@ export interface CompanyAnalyticsResponse {
   };
   users: {
     total_active_users: number;
-    assistants: number;
-    agents: number;
   };
   messages: {
+    total: number;
     user_messages_total: number;
+    assistant_messages_total: number;
+    agent_messages_total: number;
   };
   feedback: {
     total: number;

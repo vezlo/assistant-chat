@@ -4,6 +4,8 @@
 
 A React component library for integrating AI assistant chat functionality into web applications with realtime updates and human agent support.
 
+**📋 [Changelog](https://github.com/vezlo/assistant-chat/blob/main/CHANGELOG.md)** | **🐛 [Report Issue](https://github.com/vezlo/assistant-chat/issues)**
+
 > **📦 This is the NPM package documentation**  
 > **🏠 Repository**: [assistant-chat](https://github.com/vezlo/assistant-chat) - Contains both this NPM package and a standalone admin application  
 > **🖥️ Standalone App**: Want to run the admin dashboard? Visit the [main repository](https://github.com/vezlo/assistant-chat) for setup instructions

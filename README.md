@@ -4,6 +4,8 @@
 
 A complete chat widget solution with both a React component library and standalone admin application for AI-powered customer support.
 
+**📋 [Changelog](./CHANGELOG.md)** | **🐛 [Report Issue](https://github.com/vezlo/assistant-chat/issues)**
+
 ## What's Included
 
 ### 📦 NPM Package

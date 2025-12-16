@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2025-12-17
+
+### Added
+- **Citation Support**: Display sources for AI responses with "View Sources" link
+- **CitationView Component**: Inline source list that expands below assistant messages
+- **Source Content Viewer**: Clicking sources opens document content in new browser window with plain text display
+- **Per-Message Sources**: Each message stores its own sources array, preventing cross-message source leakage
+- **Markdown Rendering**: Chatbot responses now render markdown with proper HTML conversion and XSS protection
+- **Code Block Scrolling**: Horizontal scrolling for code blocks that overflow widget boundaries
+- **Custom Scrollbar**: Elegant, thin scrollbar styling for code blocks
+
+### Changed
+- Citation API integration for fetching document content
+- Loading spinner shown when fetching citation context
+
 ## [1.6.0] - 2025-12-16
 
 ### Added

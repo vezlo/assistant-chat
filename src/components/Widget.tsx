@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Send, X, MessageCircle, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
+import { markdownToHtml } from '../utils/markdown.js';
 import { VezloFooter } from './ui/VezloFooter.js';
 import { createConversation, createUserMessage, streamAIResponse } from '../api/index.js';
 import { submitFeedback, deleteFeedback } from '../api/message.js';
@@ -642,7 +643,14 @@ export function Widget({
                         : '0 2px 8px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                    {message.role === 'user' ? (
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                    ) : (
+                      <div 
+                        className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
+                        dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
+                      />
+                    )}
                   </div>
                   
                   <div className="flex items-center justify-between mt-1">

@@ -5,6 +5,7 @@ import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
 import { markdownToHtml } from '../utils/markdown.js';
 import { VezloFooter } from './ui/VezloFooter.js';
+import { CitationView } from './ui/CitationView.js';
 import { createConversation, createUserMessage, streamAIResponse } from '../api/index.js';
 import { submitFeedback, deleteFeedback } from '../api/message.js';
 import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
@@ -237,7 +238,7 @@ export function Widget({
         await streamAIResponse(
           userMessageResponse.uuid,
           {
-            onChunk: (chunk, isDone) => {
+            onChunk: (chunk, isDone, sources) => {
               // Hide loading indicator on first chunk (streaming started)
               if (!hasReceivedChunks) {
                 hasReceivedChunks = true;
@@ -254,12 +255,19 @@ export function Widget({
               if (isDone && !streamingComplete) {
                 streamingComplete = true;
                 
-                // Add message to array with temp ID (shows timestamp/icons)
+                console.log('Stream complete, sources:', sources);
+                
+                // Add message to array with temp ID and sources
                 const tempMessage: ChatMessage = {
                   id: tempMessageId,
                   content: accumulatedContent,
                   role: 'assistant',
                   timestamp: new Date(),
+                  sources: sources && sources.length > 0 ? sources.map(s => ({
+                    document_uuid: s.document_uuid,
+                    document_title: s.document_title,
+                    chunk_indices: s.chunk_indices
+                  })) : undefined
                 };
                 
                 setStreamingMessage('');
@@ -646,10 +654,15 @@ export function Widget({
                     {message.role === 'user' ? (
                       <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                     ) : (
-                      <div 
-                        className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
-                        dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
-                      />
+                      <div>
+                        <div 
+                          className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
+                          dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
+                        />
+                        {message.sources && message.sources.length > 0 && (
+                          <CitationView sources={message.sources} />
+                        )}
+                      </div>
                     )}
                   </div>
                   

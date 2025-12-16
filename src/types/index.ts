@@ -30,7 +30,10 @@ export interface ChatMessage {
 }
 
 export interface ChatSource {
-  title: string;
+  document_uuid: string;
+  document_title: string;
+  chunk_indices: number[];
+  title?: string; // Deprecated, use document_title
   url?: string;
   content?: string;
 }

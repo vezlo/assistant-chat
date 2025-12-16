@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.6.0] - 2025-01-09
+## [1.6.0] - 2025-12-16
 
 ### Added
 - **Archive Functionality**: Archive closed conversations with dedicated UI in ConversationsTab

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2025-01-09
+
+### Added
+- **Archive Functionality**: Archive closed conversations with dedicated UI in ConversationsTab
+- **Active/Archived Tabs**: Filter conversations by active or archived status with tab interface
+- **Browser Notifications**: Desktop notifications for new messages and conversations (when tab not visible)
+- **Archive API Integration**: `archiveConversation()` API method with proper error handling
+- **Notification Service**: Standalone notification service with permission management and tab visibility detection
+
+### Changed
+- Archive button shows only for closed (non-archived) conversations
+- Archived conversations display "Archived" status in purple color
+- Archiving removes conversation from Active tab and clears selection
+- Conversation list API calls now support `status` parameter for filtering
+- Notifications include conversation ID in title format: "New message from User - Conv #abc12345"
+- Clicking notification switches to correct tab and selects conversation
+
+### Fixed
+- Loading indicator when switching between Active/Archived tabs
+- Proper status calculation including archived state
+- Tab hover cursor styling
+
 ## [1.5.0] - 2025-12-12
 
 ### Added

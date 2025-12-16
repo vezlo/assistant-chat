@@ -26,6 +26,7 @@ export interface ConversationListItem {
   last_message_at: string | null;
   joined_at: string | null;
   closed_at: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -136,11 +137,13 @@ export async function getConversations(
   page = 1,
   pageSize = 20,
   orderBy = 'last_message_at',
-  apiUrl?: string
+  apiUrl?: string,
+  status?: 'active' | 'archived'
 ): Promise<ConversationListResponse> {
   const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+  const statusParam = status ? `&status=${status}` : '';
   const response = await fetch(
-    `${API_BASE_URL}/api/conversations?page=${page}&page_size=${pageSize}&order_by=${orderBy}`,
+    `${API_BASE_URL}/api/conversations?page=${page}&page_size=${pageSize}&order_by=${orderBy}${statusParam}`,
     {
       method: 'GET',
       headers: {
@@ -242,6 +245,34 @@ export async function closeConversation(
   }
 
   return (await response.json()) as JoinConversationResponse;
+}
+
+/**
+ * Archive a conversation as an agent
+ */
+export async function archiveConversation(
+  token: string,
+  conversationUuid: string,
+  apiUrl?: string
+): Promise<{ success: boolean; archived_at: string }> {
+  const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationUuid}/archive`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const message = await parseErrorMessage(response);
+    throw new Error(message);
+  }
+
+  return (await response.json()) as { success: boolean; archived_at: string };
 }
 
 /**

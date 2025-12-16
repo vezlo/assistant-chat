@@ -10,12 +10,14 @@ interface ConversationChatProps {
   messagesAreaRef: RefObject<HTMLDivElement | null>;
   isJoining: boolean;
   isClosing: boolean;
+  isArchiving: boolean;
   isSending: boolean;
   messageContent: string;
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
   onJoinConversation: () => void;
   onCloseConversation: () => void;
+  onArchiveConversation: () => void;
 }
 
 function groupMessagesByDate(messages: ConversationMessage[]) {
@@ -42,12 +44,14 @@ export function ConversationChat({
   messagesAreaRef,
   isJoining,
   isClosing,
+  isArchiving,
   isSending,
   messageContent,
   onMessageChange,
   onSendMessage,
   onJoinConversation,
   onCloseConversation,
+  onArchiveConversation,
 }: ConversationChatProps) {
   const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -105,12 +109,21 @@ export function ConversationChat({
             <LogIn className="w-4 h-4" />
             {isJoining ? 'Joining...' : 'Join Conversation'}
           </button>
-        ) : selectedConversation.closed_at ? (
+        ) : selectedConversation.archived_at ? (
           <button
             disabled
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
           >
-            Archive Conversation
+            Archived
+          </button>
+        ) : selectedConversation.closed_at ? (
+          <button
+            onClick={onArchiveConversation}
+            disabled={isArchiving}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+          >
+            <LogIn className="w-4 h-4 rotate-180" />
+            {isArchiving ? 'Archiving...' : 'Archive Conversation'}
           </button>
         ) : (
           <button

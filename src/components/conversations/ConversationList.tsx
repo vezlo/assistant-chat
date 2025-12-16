@@ -13,6 +13,8 @@ interface ConversationListProps {
   newConversationIds: Set<string>;
   onConversationClick: (conversation: ConversationListItem) => void;
   listRef: RefObject<HTMLDivElement | null>;
+  activeTab: 'active' | 'archived';
+  onTabChange: (tab: 'active' | 'archived') => void;
 }
 
 const avatarColors = [
@@ -45,9 +47,35 @@ export function ConversationList({
   newConversationIds,
   onConversationClick,
   listRef,
+  activeTab,
+  onTabChange,
 }: ConversationListProps) {
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="border-b border-gray-200 bg-gray-50">
+        <div className="flex">
+          <button
+            onClick={() => onTabChange('active')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+              activeTab === 'active'
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => onTabChange('archived')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+              activeTab === 'archived'
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Archived
+          </button>
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto" ref={listRef}>
         {isLoading && conversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">Loading conversations...</div>
@@ -107,14 +135,16 @@ export function ConversationList({
                     <div className="flex items-center justify-between text-xs">
                       <span
                         className={`capitalize font-medium ${
-                          conv.status === 'in_progress'
+                          conv.archived_at
+                            ? 'text-purple-600'
+                            : conv.status === 'in_progress'
                             ? 'text-blue-600'
                             : conv.status === 'closed'
                             ? 'text-gray-500'
                             : 'text-amber-600'
                         }`}
                       >
-                        {conv.status === 'in_progress' ? 'In Progress' : conv.status === 'closed' ? 'Closed' : conv.status}
+                        {conv.archived_at ? 'Archived' : conv.status === 'in_progress' ? 'In Progress' : conv.status === 'closed' ? 'Closed' : conv.status}
                       </span>
                       <span className="text-gray-500">
                         {conv.last_message_at

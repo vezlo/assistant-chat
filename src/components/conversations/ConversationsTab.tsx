@@ -5,12 +5,14 @@ import {
   getConversationMessages,
   joinConversation,
   closeConversation,
+  archiveConversation,
   sendAgentMessage,
 } from '@/api/conversation';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversation';
 import { subscribeToConversations, type MessageCreatedPayload, type ConversationCreatedPayload } from '@/services/conversationRealtime';
 import { ConversationList } from '@/components/conversations/ConversationList';
 import { ConversationChat } from '@/components/conversations/ConversationChat';
+import { requestNotificationPermission, showNotification, truncateMessage } from '@/services/notificationService';
 
 export function ConversationsTab() {
   const { token, user } = useApp();
@@ -23,6 +25,7 @@ export function ConversationsTab() {
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +34,11 @@ export function ConversationsTab() {
   const [hasMoreConversations, setHasMoreConversations] = useState(false);
   const [messagesPage, setMessagesPage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const conversationsListRef = useRef<HTMLDivElement>(null);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
 
-  const loadConversations = useCallback(async (page: number = 1, append: boolean = false) => {
+  const loadConversations = useCallback(async (page: number = 1, append: boolean = false, status?: 'active' | 'archived') => {
     if (!token) return;
     
     const listElement = conversationsListRef.current;
@@ -50,7 +54,7 @@ export function ConversationsTab() {
     }
     setError(null);
     try {
-      const response = await getConversations(token, page, 20);
+      const response = await getConversations(token, page, 20, 'last_message_at', undefined, status);
       if (append) {
         setConversations(prev => [...prev, ...response.conversations]);
       } else {
@@ -129,13 +133,24 @@ export function ConversationsTab() {
     }
   }, [token]);
 
+  const handleTabChange = useCallback((tab: 'active' | 'archived') => {
+    setActiveTab(tab);
+    setConversationsPage(1);
+    setHasMoreConversations(false);
+    setSelectedConversation(null);
+    setMessages([]);
+    setConversations([]);
+    setIsLoadingConversations(true);
+    loadConversations(1, false, tab);
+  }, [loadConversations]);
+
   useEffect(() => {
     if (token) {
       setConversationsPage(1);
       setHasMoreConversations(false);
-      loadConversations(1, false);
+      loadConversations(1, false, activeTab);
     }
-  }, [token, loadConversations]);
+  }, [token, loadConversations, activeTab]);
 
       // Handle conversations list scroll
   useEffect(() => {
@@ -147,7 +162,7 @@ export function ConversationsTab() {
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
 
       if (isNearBottom && hasMoreConversations && !isLoadingConversations && !isLoadingMoreConversations) {
-        loadConversations(conversationsPage + 1, true);
+        loadConversations(conversationsPage + 1, true, activeTab);
       }
     };
 
@@ -186,6 +201,11 @@ export function ConversationsTab() {
     messagesElement.addEventListener('scroll', handleScroll);
     return () => messagesElement.removeEventListener('scroll', handleScroll);
   }, [hasMoreMessages, messagesPage, isLoadingMessages, isLoadingMoreMessages, selectedConversation, loadMessages]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   // Subscribe to realtime updates
   useEffect(() => {
@@ -235,6 +255,46 @@ export function ConversationsTab() {
         : conv
     ));
 
+    // Show notification only if:
+    // 1. Message is not in currently selected conversation
+    // 2. Message is not a system message
+    // 3. Tab is not visible (handled in notificationService)
+    if (selectedConversation?.uuid !== payload.conversation_uuid && payload.message.type !== 'system') {
+      const authorName = payload.message.type === 'user' ? 'User' : payload.message.type === 'agent' ? 'Agent' : 'Assistant';
+      const convId = payload.conversation_uuid.slice(0, 8);
+      showNotification({
+        title: `New message from ${authorName} - Conv #${convId}`,
+        body: truncateMessage(payload.message.content),
+        tag: payload.conversation_uuid,
+        onClick: () => {
+          // Find conversation in current list
+          let conversation = conversations.find(c => c.uuid === payload.conversation_uuid);
+          
+          // If not in current tab, switch to the correct tab and reload
+          if (!conversation) {
+            const shouldBeActive = !payload.conversation_update.archived_at;
+            const targetTab = shouldBeActive ? 'active' : 'archived';
+            
+            if (activeTab !== targetTab) {
+              setActiveTab(targetTab);
+              loadConversations(1, false, targetTab).then(() => {
+                // After loading, find and select the conversation
+                setConversations(prev => {
+                  const found = prev.find(c => c.uuid === payload.conversation_uuid);
+                  if (found) {
+                    handleConversationClick(found);
+                  }
+                  return prev;
+                });
+              });
+            }
+          } else {
+            handleConversationClick(conversation);
+          }
+        }
+      });
+    }
+
     // If this conversation is currently selected, append the message
     if (selectedConversation?.uuid === payload.conversation_uuid) {
       setMessages(prev => {
@@ -276,6 +336,7 @@ export function ConversationsTab() {
       last_message_at: payload.conversation.last_message_at,
       joined_at: null,
       closed_at: null,
+      archived_at: null,
       created_at: payload.conversation.created_at,
       updated_at: payload.conversation.created_at
     };
@@ -284,6 +345,31 @@ export function ConversationsTab() {
     
     // Mark as new
     setNewConversationIds(prev => new Set([...prev, newConversation.uuid]));
+
+    // Show notification for new conversation
+    const convId = payload.conversation.uuid.slice(0, 8);
+    showNotification({
+      title: `New Conversation - Conv #${convId}`,
+      body: `New conversation started`,
+      tag: payload.conversation.uuid,
+      onClick: () => {
+        // Ensure we're on active tab (new conversations are always active)
+        if (activeTab !== 'active') {
+          setActiveTab('active');
+          loadConversations(1, false, 'active').then(() => {
+            setConversations(prev => {
+              const found = prev.find(c => c.uuid === payload.conversation.uuid);
+              if (found) {
+                handleConversationClick(found);
+              }
+              return prev;
+            });
+          });
+        } else {
+          handleConversationClick(newConversation);
+        }
+      }
+    });
   };
 
   const handleJoinConversation = async () => {
@@ -326,6 +412,45 @@ export function ConversationsTab() {
       setError(err instanceof Error ? err.message : 'Failed to close conversation');
     } finally {
       setIsClosing(false);
+    }
+  };
+
+  const handleArchiveConversation = async () => {
+    if (!token || !selectedConversation) return;
+
+    setIsArchiving(true);
+    setError(null);
+    try {
+      await archiveConversation(token, selectedConversation.uuid);
+      
+      // If on active tab, remove conversation from list and clear selection
+      if (activeTab === 'active') {
+        setConversations(prev =>
+          prev.filter(conv => conv.uuid !== selectedConversation.uuid)
+        );
+        setSelectedConversation(null);
+        setMessages([]);
+      } else {
+        // If on archived tab (shouldn't happen, but handle it), update the conversation
+        setSelectedConversation(prev =>
+          prev
+            ? { ...prev, archived_at: new Date().toISOString(), status: 'archived' }
+            : prev
+        );
+        setConversations(prev =>
+          prev.map(conv =>
+            conv.uuid === selectedConversation.uuid
+              ? { ...conv, archived_at: new Date().toISOString(), status: 'archived' }
+              : conv
+          )
+        );
+      }
+      
+      // realtime update handles UI for other clients
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive conversation');
+    } finally {
+      setIsArchiving(false);
     }
   };
 
@@ -384,6 +509,8 @@ export function ConversationsTab() {
         newConversationIds={newConversationIds}
         onConversationClick={handleConversationClick}
         listRef={conversationsListRef}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
       />
       <ConversationChat
         selectedConversation={selectedConversation}
@@ -393,12 +520,14 @@ export function ConversationsTab() {
         messagesAreaRef={messagesAreaRef}
         isJoining={isJoining}
         isClosing={isClosing}
+        isArchiving={isArchiving}
         isSending={isSending}
         messageContent={messageContent}
         onMessageChange={setMessageContent}
         onSendMessage={handleSendMessage}
         onJoinConversation={handleJoinConversation}
         onCloseConversation={handleCloseConversation}
+        onArchiveConversation={handleArchiveConversation}
       />
     </div>
   );

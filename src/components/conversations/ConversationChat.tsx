@@ -1,6 +1,7 @@
 import { useMemo, type RefObject } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send, Loader2 } from 'lucide-react';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversation';
+import { markdownToHtml } from '@/utils/markdown';
 
 interface ConversationChatProps {
   selectedConversation: ConversationListItem | null;
@@ -10,12 +11,14 @@ interface ConversationChatProps {
   messagesAreaRef: RefObject<HTMLDivElement | null>;
   isJoining: boolean;
   isClosing: boolean;
+  isArchiving: boolean;
   isSending: boolean;
   messageContent: string;
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
   onJoinConversation: () => void;
   onCloseConversation: () => void;
+  onArchiveConversation: () => void;
 }
 
 function groupMessagesByDate(messages: ConversationMessage[]) {
@@ -42,12 +45,14 @@ export function ConversationChat({
   messagesAreaRef,
   isJoining,
   isClosing,
+  isArchiving,
   isSending,
   messageContent,
   onMessageChange,
   onSendMessage,
   onJoinConversation,
   onCloseConversation,
+  onArchiveConversation,
 }: ConversationChatProps) {
   const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -105,12 +110,21 @@ export function ConversationChat({
             <LogIn className="w-4 h-4" />
             {isJoining ? 'Joining...' : 'Join Conversation'}
           </button>
-        ) : selectedConversation.closed_at ? (
+        ) : selectedConversation.archived_at ? (
           <button
             disabled
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
           >
-            Archive Conversation
+            Archived
+          </button>
+        ) : selectedConversation.closed_at ? (
+          <button
+            onClick={onArchiveConversation}
+            disabled={isArchiving}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+          >
+            <LogIn className="w-4 h-4 rotate-180" />
+            {isArchiving ? 'Archiving...' : 'Archive Conversation'}
           </button>
         ) : (
           <button
@@ -243,9 +257,10 @@ export function ConversationChat({
                                   <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" aria-label="Sending" />
                                 </div>
                               )}
-                              <div className="text-sm text-gray-900 whitespace-pre-wrap break-words leading-relaxed">
-                                {msg.content}
-                              </div>
+                              <div 
+                                className="text-sm text-gray-900 prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
+                                dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.content) }}
+                              />
                               <div className="flex items-center justify-end mt-0.5 gap-2">
                                 <span className="text-[10px] text-gray-400">
                                   {new Date(msg.created_at).toLocaleTimeString('en-US', {

@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Send, X, MessageCircle, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, X, MessageCircle, Bot, ThumbsUp, ThumbsDown, Copy, Check } from 'lucide-react';
 import type { ChatMessage, WidgetConfig } from '../types/index.js';
 import { generateId, formatTimestamp } from '../utils/index.js';
+import { markdownToHtml } from '../utils/markdown.js';
 import { VezloFooter } from './ui/VezloFooter.js';
+import { CitationView } from './ui/CitationView.js';
 import { createConversation, createUserMessage, streamAIResponse } from '../api/index.js';
 import { submitFeedback, deleteFeedback } from '../api/message.js';
 import { subscribeToConversations, type MessageCreatedPayload } from '../services/conversationRealtime.js';
@@ -42,6 +44,7 @@ export function Widget({
   const [isLoading, setIsLoading] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<{[key: string]: 'like' | 'dislike' | null}>({});
   const [messageFeedbackUuids, setMessageFeedbackUuids] = useState<{[key: string]: string}>({});
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [conversationUuid, setConversationUuid] = useState<string | null>(null);
   const [companyUuid, setCompanyUuid] = useState<string | null>(null);
@@ -109,6 +112,7 @@ export function Widget({
             id: generateId(),
             content: config.welcomeMessage || 'Hello! I\'m your AI assistant. How can I help you today?',
             role: 'assistant' as const,
+            type: 'assistant' as const, // Set type for button visibility
             timestamp: new Date(),
           };
           setMessages([welcomeMsg]);
@@ -121,6 +125,7 @@ export function Widget({
             id: generateId(),
             content: config.welcomeMessage || 'Hello! I\'m your AI assistant. How can I help you today?',
             role: 'assistant' as const,
+            type: 'assistant' as const, // Set type for button visibility
             timestamp: new Date(),
           };
           setMessages([welcomeMsg]);
@@ -236,7 +241,7 @@ export function Widget({
         await streamAIResponse(
           userMessageResponse.uuid,
           {
-            onChunk: (chunk, isDone) => {
+            onChunk: (chunk, isDone, sources) => {
               // Hide loading indicator on first chunk (streaming started)
               if (!hasReceivedChunks) {
                 hasReceivedChunks = true;
@@ -253,12 +258,20 @@ export function Widget({
               if (isDone && !streamingComplete) {
                 streamingComplete = true;
                 
-                // Add message to array with temp ID (shows timestamp/icons)
+                console.log('Stream complete, sources:', sources);
+                
+                // Add message to array with temp ID and sources
                 const tempMessage: ChatMessage = {
                   id: tempMessageId,
                   content: accumulatedContent,
                   role: 'assistant',
+                  type: 'assistant', // Set type for button visibility
                   timestamp: new Date(),
+                  sources: sources && sources.length > 0 ? sources.map(s => ({
+                    document_uuid: s.document_uuid,
+                    document_title: s.document_title,
+                    chunk_indices: s.chunk_indices
+                  })) : undefined
                 };
                 
                 setStreamingMessage('');
@@ -281,6 +294,7 @@ export function Widget({
                 id: completionData.uuid,
                 content: accumulatedContent,
                 role: 'assistant',
+                type: 'assistant', // Set type for button visibility
                 timestamp: new Date(completionData.created_at),
               };
               onMessage?.(finalMessage);
@@ -330,6 +344,7 @@ export function Widget({
         id: generateId(),
         content: 'Sorry, I encountered an error processing your message. Please try again.',
         role: 'assistant',
+        type: 'assistant', // Set type for button visibility
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -355,6 +370,19 @@ export function Widget({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleCopyMessage = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message || message.role !== 'assistant') return;
+    
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
     }
   };
 
@@ -642,7 +670,19 @@ export function Widget({
                         : '0 2px 8px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                    {message.role === 'user' ? (
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+                    ) : (
+                      <div>
+                        <div 
+                          className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
+                          dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
+                        />
+                        {message.sources && message.sources.length > 0 && (
+                          <CitationView sources={message.sources} />
+                        )}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex items-center justify-between mt-1">
@@ -654,7 +694,7 @@ export function Widget({
                       {formatTimestamp(message.timestamp)}
                     </p>
                     
-                    {message.role === 'assistant' && (() => {
+                    {message.role === 'assistant' && message.type === 'assistant' && (() => {
                       // Check if message has real UUID (not temp ID)
                       // Disable if: message has temp ID (starts with 'streaming-') AND no _realUuid yet
                       const isTempId = message.id?.startsWith('streaming-') || false;
@@ -663,6 +703,17 @@ export function Widget({
                       
                       return (
                         <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={() => handleCopyMessage(message.id)}
+                            className="p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer text-gray-400 hover:text-gray-600"
+                            title="Copy response"
+                          >
+                            {copiedMessageId === message.id ? (
+                              <Check className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             onClick={() => !isDisabled && handleFeedback(message.id, 'like')}
                             disabled={isDisabled}

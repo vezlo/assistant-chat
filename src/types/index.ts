@@ -24,13 +24,17 @@ export interface ChatMessage {
   id: string;
   content: string;
   role: 'user' | 'assistant' | 'system';
+  type?: 'user' | 'assistant' | 'agent' | 'system'; // Message type from realtime updates
   timestamp: Date;
   sources?: ChatSource[];
   _realUuid?: string; // Internal field for tracking real message UUID during streaming
 }
 
 export interface ChatSource {
-  title: string;
+  document_uuid: string;
+  document_title: string;
+  chunk_indices: number[];
+  title?: string; // Deprecated, use document_title
   url?: string;
   content?: string;
 }

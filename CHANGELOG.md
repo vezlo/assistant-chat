@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.6.0] - 2025-12-12
+## [1.8.0] - 2025-12-17
 
 ### Added
 - **AI Settings Tab**: Added dedicated "AI Settings" tab to Config dashboard for managing AI behavior
@@ -11,6 +11,43 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **Navigation**: Updated application navigation structure to nest AI settings under configuration
 - **UI Architecture**: Added `AISettingsTab` to the modular configuration page architecture
+
+## [1.7.0] - 2025-12-17
+
+### Added
+- **Citation Support**: Display sources for AI responses with "View Sources" link
+- **CitationView Component**: Inline source list that expands below assistant messages
+- **Source Content Viewer**: Clicking sources opens document content in new browser window with plain text display
+- **Per-Message Sources**: Each message stores its own sources array, preventing cross-message source leakage
+- **Markdown Rendering**: Chatbot responses now render markdown with proper HTML conversion and XSS protection
+- **Code Block Scrolling**: Horizontal scrolling for code blocks that overflow widget boundaries
+- **Custom Scrollbar**: Elegant, thin scrollbar styling for code blocks
+
+### Changed
+- Citation API integration for fetching document content
+- Loading spinner shown when fetching citation context
+
+## [1.6.0] - 2025-12-16
+
+### Added
+- **Archive Functionality**: Archive closed conversations with dedicated UI in ConversationsTab
+- **Active/Archived Tabs**: Filter conversations by active or archived status with tab interface
+- **Browser Notifications**: Desktop notifications for new messages and conversations (when tab not visible)
+- **Archive API Integration**: `archiveConversation()` API method with proper error handling
+- **Notification Service**: Standalone notification service with permission management and tab visibility detection
+
+### Changed
+- Archive button shows only for closed (non-archived) conversations
+- Archived conversations display "Archived" status in purple color
+- Archiving removes conversation from Active tab and clears selection
+- Conversation list API calls now support `status` parameter for filtering
+- Notifications include conversation ID in title format: "New message from User - Conv #abc12345"
+- Clicking notification switches to correct tab and selects conversation
+
+### Fixed
+- Loading indicator when switching between Active/Archived tabs
+- Proper status calculation including archived state
+- Tab hover cursor styling
 
 ## [1.5.0] - 2025-12-12
 

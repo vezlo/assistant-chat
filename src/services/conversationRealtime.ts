@@ -47,6 +47,7 @@ export interface MessageCreatedPayload {
     joined_at?: string;
     status?: string;
     closed_at?: string;
+    archived_at?: string;
   };
 }
 

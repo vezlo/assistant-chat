@@ -28,6 +28,11 @@ export interface StreamChunkEvent {
   type: 'chunk';
   content: string;
   done?: boolean; // Marks the last chunk (streaming complete, but no UUID yet)
+  sources?: Array<{
+    document_uuid: string;
+    document_title: string;
+    chunk_indices: number[];
+  }>;
 }
 
 export interface StreamCompletionEvent {
@@ -47,7 +52,7 @@ export interface StreamErrorEvent {
 export type StreamEvent = StreamChunkEvent | StreamCompletionEvent | StreamErrorEvent;
 
 export interface StreamCallbacks {
-  onChunk?: (content: string, isDone?: boolean) => void;
+  onChunk?: (content: string, isDone?: boolean, sources?: Array<{document_uuid: string; document_title: string; chunk_indices: number[]}>) => void;
   onCompletion?: (data: StreamCompletionEvent) => void;
   onError?: (error: StreamErrorEvent) => void;
   onDone?: () => void;
@@ -208,7 +213,7 @@ export async function streamAIResponse(
 
               switch (event.type) {
                 case 'chunk':
-                  callbacks.onChunk?.(event.content, event.done);
+                  callbacks.onChunk?.(event.content, event.done, event.sources);
                   break;
                 case 'completion':
                   callbacks.onCompletion?.(event);

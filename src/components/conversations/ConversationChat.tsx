@@ -1,6 +1,7 @@
 import { useMemo, type RefObject } from 'react';
 import { MessageCircle, LogIn, User, Sparkles, Send, Loader2 } from 'lucide-react';
 import type { ConversationListItem, ConversationMessage } from '@/api/conversation';
+import { markdownToHtml } from '@/utils/markdown';
 
 interface ConversationChatProps {
   selectedConversation: ConversationListItem | null;
@@ -256,9 +257,10 @@ export function ConversationChat({
                                   <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" aria-label="Sending" />
                                 </div>
                               )}
-                              <div className="text-sm text-gray-900 whitespace-pre-wrap break-words leading-relaxed">
-                                {msg.content}
-                              </div>
+                              <div 
+                                className="text-sm text-gray-900 prose prose-sm max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-pre:my-2 prose-code:text-xs [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-words"
+                                dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.content) }}
+                              />
                               <div className="flex items-center justify-end mt-0.5 gap-2">
                                 <span className="text-[10px] text-gray-400">
                                   {new Date(msg.created_at).toLocaleTimeString('en-US', {

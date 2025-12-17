@@ -45,7 +45,7 @@ export function AnalyticsTab() {
 
   const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => {
     const [isVisible, setIsVisible] = useState(false);
-    
+
     return (
       <div className="relative inline-flex items-center">
         <div
@@ -67,7 +67,7 @@ export function AnalyticsTab() {
     );
   };
 
-  const StatCard = ({ 
+  const StatCard = ({
     title, 
     value, 
     subtext, 
@@ -75,7 +75,7 @@ export function AnalyticsTab() {
     colorClass = "text-emerald-600",
     bgClass = "bg-emerald-100",
     tooltip
-  }: { 
+  }: {
     title: string; 
     value: number | string; 
     subtext?: string; 
@@ -303,6 +303,7 @@ export function AnalyticsTab() {
                   <p className="text-sm font-medium text-gray-700">Positive (Likes)</p>
                   <p className="text-xs text-gray-500 mt-0.5">Satisfied users</p>
                 </div>
+                <span className="text-sm font-medium text-gray-700">Positive (Likes)</span>
               </div>
               <span className="text-2xl font-bold text-green-600">{analytics.feedback?.likes || 0}</span>
             </div>
@@ -315,6 +316,7 @@ export function AnalyticsTab() {
                   <p className="text-sm font-medium text-gray-700">Negative (Dislikes)</p>
                   <p className="text-xs text-gray-500 mt-0.5">Needs improvement</p>
                 </div>
+                <span className="text-sm font-medium text-gray-700">Negative (Dislikes)</span>
               </div>
               <span className="text-2xl font-bold text-red-600">{analytics.feedback?.dislikes || 0}</span>
             </div>
@@ -327,11 +329,14 @@ export function AnalyticsTab() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-700 shadow-sm" 
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-700 shadow-sm"
                     style={{ width: `${((analytics.feedback?.likes || 0) / (analytics.feedback?.total || 1)) * 100}%` }}
                   ></div>
                 </div>
+                <p className="text-xs text-right mt-1 text-gray-500">
+                  {Math.round((analytics.feedback.likes / analytics.feedback.total) * 100)}% Positive
+                </p>
               </div>
             )}
           </div>

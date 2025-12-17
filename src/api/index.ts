@@ -10,4 +10,4 @@ export * from './analytics.js';
 export * from './citation.js';
 
 
-
+export * from './company.js';

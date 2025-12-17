@@ -9,10 +9,9 @@ export function SettingsPage() {
           <p className="text-gray-600">Configure your workspace and preferences</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-8">
-          <p className="text-gray-500">Settings content will be implemented here.</p>
+          <p className="text-gray-500">General settings will be implemented here.</p>
         </div>
       </div>
     </MainLayout>
   );
 }
-

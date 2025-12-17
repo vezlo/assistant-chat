@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, type LucideIcon } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, Sparkles, type LucideIcon } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
@@ -7,11 +7,20 @@ import { THEME } from '@/config/theme';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
+import { AISettingsTab } from '@/components/settings/AISettingsTab';
 
 interface TabButtonProps {
   id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics';
   activeTab: string;
   onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics') => void;
+  icon: LucideIcon;
+  label: string;
+}
+
+interface TabButtonProps {
+  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'ai-settings';
+  activeTab: string;
+  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'ai-settings') => void;
   icon: LucideIcon;
   label: string;
 }
@@ -55,7 +64,7 @@ export function ConfigPage() {
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'ai-settings'>('config');
 
 
   const generateEmbedCode = () => {
@@ -90,46 +99,53 @@ export function ConfigPage() {
             {/* Tab Navigation */}
             <div className="border-b border-gray-200">
               <nav className="flex">
-                <TabButton 
-                  id="config" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={Settings} 
-                  label="Configuration" 
+                <TabButton
+                  id="config"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={Settings}
+                  label="Configuration"
                 />
-                <TabButton 
-                  id="playground" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={Play} 
-                  label="Playground" 
+                <TabButton
+                  id="playground"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={Play}
+                  label="Playground"
                 />
-                <TabButton 
-                  id="embed" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={Code2} 
-                  label="Embed" 
+                <TabButton
+                  id="embed"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={Code2}
+                  label="Embed"
                 />
-                <TabButton 
-                  id="conversations" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={MessageSquare} 
-                  label="Conversations" 
+                <TabButton
+                  id="conversations"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={MessageSquare}
+                  label="Conversations"
                 />
-                <TabButton 
-                  id="analytics" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={BarChart3} 
-                  label="Analytics" 
+                <TabButton
+                  id="analytics"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={BarChart3}
+                  label="Analytics"
+                />
+                <TabButton
+                  id="ai-settings"
+                  activeTab={activeTab}
+                  onClick={setActiveTab}
+                  icon={Sparkles}
+                  label="AI Settings"
                 />
               </nav>
             </div>
 
             {/* Tab Content */}
-            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' ? '' : 'p-6'}>
+            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' || activeTab === 'ai-settings' ? '' : 'p-6'}>
               {activeTab === 'config' && (
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Configuration Form */}
@@ -305,6 +321,10 @@ export function ConfigPage() {
 
               {activeTab === 'analytics' && (
                 <AnalyticsTab />
+              )}
+
+              {activeTab === 'ai-settings' && (
+                <AISettingsTab />
               )}
 
               {activeTab === 'embed' && (

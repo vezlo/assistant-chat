@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2025-12-17
+
+### Added
+- **AI Settings Tab**: Added dedicated "AI Settings" tab to Config dashboard for managing AI behavior
+- **Response Mode**: Added ability to switch between "User" (conversational) and "Developer" (technical) response modes for the AI assistant
+
+### Changed
+- **Navigation**: Updated application navigation structure to nest AI settings under configuration
+- **UI Architecture**: Added `AISettingsTab` to the modular configuration page architecture
+
 ## [1.7.0] - 2025-12-17
 
 ### Added
@@ -60,6 +70,13 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Error Handling**: Comprehensive null checks and fallback values (defaults to 0) for all statistics
 - **Data Accuracy**: Total message count now correctly excludes system messages from calculations
+
+## [1.5.0] - 2025-12-12
+
+### Changed
+- **Analytics Dashboard**: Moved Analytics from a standalone page to a dedicated tab within the Configuration dashboard
+- **Navigation**: Updated application navigation structure to nest analytics under configuration
+- **UI Architecture**: Refactored Configuration page with modular tab components (`AnalyticsTab`, `TabButton`) for better maintainability
 
 ## [1.4.0] - 2025-12-05
 

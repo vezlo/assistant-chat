@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { getCitationContext } from '../../api/citation';
 
 interface Source {
@@ -12,16 +12,47 @@ interface CitationViewProps {
   sources: Source[];
 }
 
+// MIME type to extension mapping
+const mimeToExtension: Record<string, string> = {
+  'text/javascript': '.js',
+  'application/javascript': '.js',
+  'text/jsx': '.jsx',
+  'text/typescript': '.ts',
+  'application/typescript': '.ts',
+  'text/tsx': '.tsx',
+  'text/x-python': '.py',
+  'text/python': '.py',
+  'text/markdown': '.md',
+  'text/x-markdown': '.md',
+  'application/json': '.json',
+  'text/html': '.html',
+  'text/css': '.css',
+  'text/plain': '.txt',
+  'text/xml': '.xml',
+};
+
+function getFileExtension(title: string, fileType?: string): string {
+  // First try to extract from filename
+  const match = title.match(/\.([a-zA-Z0-9]+)$/);
+  if (match) {
+    return `.${match[1]}`;
+  }
+  
+  // Fallback to MIME type mapping
+  if (fileType && mimeToExtension[fileType]) {
+    return mimeToExtension[fileType];
+  }
+  
+  // Default to .txt
+  return '.txt';
+}
+
 export function CitationView({ sources }: CitationViewProps) {
   const [loadingUuid, setLoadingUuid] = useState<string | null>(null);
 
-  const handleViewSource = async (source: Source) => {
+  const handleDownloadSource = async (source: Source) => {
     setLoadingUuid(source.document_uuid);
     try {
-      console.log('Attempting to fetch citation for source:', source);
-      console.log('Document UUID:', source.document_uuid);
-      console.log('Chunk Indices:', source.chunk_indices);
-      
       if (!source.document_uuid || !source.chunk_indices || source.chunk_indices.length === 0) {
         setLoadingUuid(null);
         alert('Invalid source data. UUID or chunk indices are missing.');
@@ -30,59 +61,34 @@ export function CitationView({ sources }: CitationViewProps) {
       
       const context = await getCitationContext(source.document_uuid, source.chunk_indices);
       
-      console.log('Received context:', context);
-      console.log('Content:', context.content);
-      
       if (!context || !context.content) {
         setLoadingUuid(null);
         alert('No content available for this source.');
         return;
       }
       
-      // Escape HTML to prevent rendering
-      const escapeHtml = (text: string) => {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      };
+      // Determine file extension
+      const extension = getFileExtension(context.document_title, context.file_type);
+      const filename = context.document_title.endsWith(extension) 
+        ? context.document_title 
+        : `${context.document_title}${extension}`;
       
-      // Generate plain text content for new window
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${context.document_title}</title>
-          <style>
-            body { 
-              font-family: monospace;
-              font-size: 8px;
-              line-height: 1.3;
-              white-space: pre-wrap;
-              padding: 20px;
-              margin: 0;
-              max-width: 100%;
-              overflow-x: auto;
-            }
-          </style>
-        </head>
-        <body>${escapeHtml(context.content)}</body>
-        </html>
-      `;
-      
-      // Open in new window
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write(htmlContent);
-        newWindow.document.close();
-      }
+      // Create blob and download
+      const blob = new Blob([context.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
       setLoadingUuid(null);
     } catch (err) {
-      console.error('Failed to load citation context:', err);
+      console.error('Failed to download source:', err);
       setLoadingUuid(null);
-      alert('Failed to load source content. Please try again.');
+      alert('Failed to download source content. Please try again.');
     }
   };
 
@@ -95,14 +101,14 @@ export function CitationView({ sources }: CitationViewProps) {
           return (
             <button
               key={index}
-              onClick={() => handleViewSource(source)}
+              onClick={() => handleDownloadSource(source)}
               disabled={isLoading}
               className="w-full text-left px-2 py-1.5 text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded flex items-center gap-1 transition-colors group cursor-pointer disabled:opacity-70 disabled:cursor-wait"
             >
               {isLoading ? (
                 <Loader2 className="w-3 h-3 flex-shrink-0 animate-spin" />
               ) : (
-                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                <Download className="w-3 h-3 flex-shrink-0" />
               )}
               <span className="truncate">{source.document_title}</span>
             </button>

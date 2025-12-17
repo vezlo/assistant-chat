@@ -7,6 +7,7 @@ const DEFAULT_API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http:
 export interface CitationContext {
   document_title: string;
   document_type: string;
+  file_type?: string;
   content: string;
 }
 

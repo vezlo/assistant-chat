@@ -27,6 +27,11 @@ export interface ChatMessage {
   type?: 'user' | 'assistant' | 'agent' | 'system'; // Message type from realtime updates
   timestamp: Date;
   sources?: ChatSource[];
+  validation?: {
+    confidence: number;
+    valid: boolean;
+    status: string;
+  };
   _realUuid?: string; // Internal field for tracking real message UUID during streaming
 }
 

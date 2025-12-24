@@ -241,7 +241,7 @@ export function Widget({
         await streamAIResponse(
           userMessageResponse.uuid,
           {
-            onChunk: (chunk, isDone, sources) => {
+            onChunk: (chunk, isDone, sources, validation) => {
               // Hide loading indicator on first chunk (streaming started)
               if (!hasReceivedChunks) {
                 hasReceivedChunks = true;
@@ -258,9 +258,9 @@ export function Widget({
               if (isDone && !streamingComplete) {
                 streamingComplete = true;
                 
-                console.log('Stream complete, sources:', sources);
+                console.log('Stream complete, sources:', sources, 'validation:', validation);
                 
-                // Add message to array with temp ID and sources
+                // Add message to array with temp ID, sources, and validation
                 const tempMessage: ChatMessage = {
                   id: tempMessageId,
                   content: accumulatedContent,
@@ -271,7 +271,8 @@ export function Widget({
                     document_uuid: s.document_uuid,
                     document_title: s.document_title,
                     chunk_indices: s.chunk_indices
-                  })) : undefined
+                  })) : undefined,
+                  validation: validation
                 };
                 
                 setStreamingMessage('');
@@ -703,6 +704,82 @@ export function Widget({
                       
                       return (
                         <div className="flex items-center gap-1 ml-2">
+                          {message.validation && (
+                            <div 
+                              className="relative w-5 h-5 cursor-pointer"
+                              title={`AI Validation\nConfidence: ${(message.validation.confidence * 100).toFixed(1)}%\nStatus: ${message.validation.status}`}
+                            >
+                              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                {/* Main circle */}
+                                <circle cx="12" cy="12" r="9.5" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                {/* Cone edges - 8 triangular protrusions */}
+                                <path d="M12 0.5 L13.5 3 L10.5 3 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M20.5 4.5 L19 7 L18 5 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M23.5 12 L21 13.5 L21 10.5 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M20.5 19.5 L18 19 L19 17 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M12 23.5 L10.5 21 L13.5 21 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M3.5 19.5 L5 17 L6 19 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M0.5 12 L3 10.5 L3 13.5 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                <path d="M3.5 4.5 L6 5 L5 7 Z" className={
+                                  message.validation.confidence > 0.7 
+                                    ? 'fill-green-500' 
+                                    : message.validation.confidence > 0.5 
+                                    ? 'fill-amber-500' 
+                                    : 'fill-red-500'
+                                } />
+                                {/* Smaller checkmark */}
+                                <path d="M8.5 12L10.5 14L15.5 9" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                              </svg>
+                            </div>
+                          )}
                           <button
                             onClick={() => handleCopyMessage(message.id)}
                             className="p-1 rounded transition-all duration-200 hover:scale-110 cursor-pointer text-gray-400 hover:text-gray-600"

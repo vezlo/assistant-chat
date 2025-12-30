@@ -31,6 +31,21 @@ export interface ChatMessage {
     confidence: number;
     valid: boolean;
     status: string;
+    accuracy?: {
+      verified: boolean;
+      verification_rate: number;
+      reason?: string;
+    };
+    hallucination?: {
+      detected: boolean;
+      risk: number;
+      reason?: string;
+    };
+    context?: {
+      source_relevance: number;
+      source_usage_rate: number;
+      valid: boolean;
+    };
   };
   _realUuid?: string; // Internal field for tracking real message UUID during streaming
 }

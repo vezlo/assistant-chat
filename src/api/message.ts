@@ -33,6 +33,11 @@ export interface StreamChunkEvent {
     document_title: string;
     chunk_indices: number[];
   }>;
+  validation?: {
+    confidence: number;
+    valid: boolean;
+    status: string;
+  };
 }
 
 export interface StreamCompletionEvent {
@@ -52,7 +57,7 @@ export interface StreamErrorEvent {
 export type StreamEvent = StreamChunkEvent | StreamCompletionEvent | StreamErrorEvent;
 
 export interface StreamCallbacks {
-  onChunk?: (content: string, isDone?: boolean, sources?: Array<{document_uuid: string; document_title: string; chunk_indices: number[]}>) => void;
+  onChunk?: (content: string, isDone?: boolean, sources?: Array<{document_uuid: string; document_title: string; chunk_indices: number[]}>, validation?: {confidence: number; valid: boolean; status: string}) => void;
   onCompletion?: (data: StreamCompletionEvent) => void;
   onError?: (error: StreamErrorEvent) => void;
   onDone?: () => void;
@@ -213,7 +218,7 @@ export async function streamAIResponse(
 
               switch (event.type) {
                 case 'chunk':
-                  callbacks.onChunk?.(event.content, event.done, event.sources);
+                  callbacks.onChunk?.(event.content, event.done, event.sources, event.validation);
                   break;
                 case 'completion':
                   callbacks.onCompletion?.(event);

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2024-12-30
+
+### Added
+- **AI Validation Badge**: Visual verified badge icon for AI-validated responses
+- **Validation Tooltip**: Hover tooltip showing confidence, status, accuracy, hallucination, and context metrics
+- **Conditional Validation Display**: Badge only appears when backend sends validation data
+- **Optional Validation Support**: Widget works seamlessly with or without AI validation enabled
+
+### Changed
+- ChatMessage type now includes optional validation field with confidence, valid, and status
+- Widget gracefully handles responses without validation metadata
+
 ## [1.7.0] - 2025-12-17
 
 ### Added

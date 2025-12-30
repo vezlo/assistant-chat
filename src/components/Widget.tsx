@@ -707,7 +707,7 @@ export function Widget({
                           {message.validation && (
                             <div 
                               className="relative w-5 h-5 cursor-pointer"
-                              title={`AI Validation\nConfidence: ${(message.validation.confidence * 100).toFixed(1)}%\nStatus: ${message.validation.status}`}
+                              title={`AI Validation\nConfidence: ${(message.validation.confidence * 100).toFixed(1)}%\nStatus: ${message.validation.status}${message.validation.accuracy ? `\n\nAccuracy:\n  Verified: ${message.validation.accuracy.verified ? 'Yes' : 'No'}\n  Rate: ${(message.validation.accuracy.verification_rate * 100).toFixed(1)}%` : ''}${message.validation.hallucination ? `\n\nHallucination:\n  Detected: ${message.validation.hallucination.detected ? 'Yes' : 'No'}\n  Risk: ${(message.validation.hallucination.risk * 100).toFixed(1)}%` : ''}${message.validation.context ? `\n\nContext:\n  Relevance: ${(message.validation.context.source_relevance * 100).toFixed(1)}%\n  Usage: ${(message.validation.context.source_usage_rate * 100).toFixed(1)}%` : ''}`}
                             >
                               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                                 {/* Main circle */}

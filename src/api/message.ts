@@ -140,7 +140,8 @@ export async function generateAIResponse(
 export async function streamAIResponse(
   userMessageUuid: string,
   callbacks: StreamCallbacks,
-  apiUrl?: string
+  apiUrl?: string,
+  userContext?: Record<string, any>
 ): Promise<void> {
   const API_BASE_URL = apiUrl || DEFAULT_API_BASE_URL;
   
@@ -151,7 +152,9 @@ export async function streamAIResponse(
         method: 'POST',
         headers: {
           'Accept': 'text/event-stream',
+          'Content-Type': 'application/json',
         },
+        body: userContext ? JSON.stringify({ user_context: userContext }) : undefined,
       }
     );
 

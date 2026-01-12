@@ -101,6 +101,7 @@ npm run dev
 - ✅ Multiple widget management
 - ✅ **Human agent support** (conversation management, agent handoff)
 - ✅ **Realtime updates** (live message synchronization)
+- ✅ **Database tools** (connect external databases for natural language queries - [docs](./docs/DATABASE_TOOLS.md))
 - ✅ Docker support
 - ✅ Vercel deployment
 

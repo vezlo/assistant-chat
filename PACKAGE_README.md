@@ -67,6 +67,7 @@ The `WidgetConfig` interface includes:
 - `defaultOpen`: Whether widget opens by default
 - `supabaseUrl`: Supabase project URL (optional, required for realtime updates)
 - `supabaseAnonKey`: Supabase anon key (optional, required for realtime updates)
+- `userContext`: Object containing user identifiers for database query filtering (optional)
 
 ### Configuration Options Table
 
@@ -85,6 +86,7 @@ The `WidgetConfig` interface includes:
 | `apiKey` | string | Required | API key for authentication |
 | `supabaseUrl` | string | Optional | Supabase project URL (for realtime updates) |
 | `supabaseAnonKey` | string | Optional | Supabase anon key (for realtime updates) |
+| `userContext` | object | Optional | User identifiers for database filtering (e.g., `{ user_uuid, company_uuid }`) |
 
 ## API Integration
 
@@ -155,6 +157,39 @@ function MyApp() {
   );
 }
 ```
+
+### With User Context (Database Tools)
+
+```tsx
+import { Widget } from '@vezlo/assistant-chat';
+
+function MyApp() {
+  // Get current user from your auth system
+  const currentUser = useAuth(); // Your auth hook
+  
+  return (
+    <Widget 
+      config={{
+        uuid: 'my-widget-123',
+        apiUrl: 'http://localhost:3000',
+        apiKey: 'your-api-key',
+        title: 'AI Assistant',
+        themeColor: '#10b981',
+        // Pass user context for database query filtering
+        userContext: {
+          user_uuid: currentUser.uuid,
+          company_uuid: currentUser.companyUuid,
+          // Optional: numeric IDs if your database uses them
+          user_id: currentUser.id,
+          company_id: currentUser.companyId
+        }
+      }}
+    />
+  );
+}
+```
+
+**Note:** `userContext` is optional. The widget works fine without it. If provided, it enables user-specific database queries when Database Tools are configured in the admin dashboard.
 
 ### With Callbacks
 

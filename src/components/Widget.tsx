@@ -327,7 +327,8 @@ export function Widget({
               setIsLoading(false);
             },
           },
-          config.apiUrl
+          config.apiUrl,
+          config.userContext // Pass user context for database filtering
         );
       } else {
         // Agent has joined, don't generate AI response

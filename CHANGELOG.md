@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2026-01-12
+
+### Added
+- **Database Tools Admin UI**: Configure external database connections and create AI-powered data query tools
+- 3-step wizard: database setup, table/column selection, tool configuration
+- User-specific data filtering with configurable context keys
+- Schema caching for improved performance
+- Edit/delete functionality for existing tools
+- Toast notifications for user feedback (top-right position)
+- Database Tools tab in admin dashboard
+
+### Changed
+- Widget `config` now accepts optional `userContext` object for database query filtering
+- Embed code includes `userContext` example
+
 ## [1.8.0] - 2024-12-30
 
 ### Added

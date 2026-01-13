@@ -36,7 +36,8 @@
         placeholder: 'Type your message...',
         welcomeMessage: "Hello! I'm your AI assistant. How can I help you today?",
         apiKey: '',
-        themeColor: '#059669'
+        themeColor: '#059669',
+        userContext: {} // Optional: user context for database filtering
       };
 
       // Merge with user config

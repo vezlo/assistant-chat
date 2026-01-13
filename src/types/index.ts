@@ -18,6 +18,7 @@ export interface WidgetConfig {
   defaultOpen?: boolean; // New parameter to control default open state
   supabaseUrl?: string; // Supabase URL for realtime updates
   supabaseAnonKey?: string; // Supabase anon key for realtime updates
+  userContext?: Record<string, any>; // User context for database filtering (optional)
 }
 
 export interface ChatMessage {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, type LucideIcon } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, Database, type LucideIcon } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
@@ -7,11 +7,12 @@ import { THEME } from '@/config/theme';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
+import { DatabaseToolsTab } from '@/components/database/DatabaseToolsTab';
 
 interface TabButtonProps {
-  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics';
+  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database';
   activeTab: string;
-  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics') => void;
+  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database') => void;
   icon: LucideIcon;
   label: string;
 }
@@ -55,14 +56,26 @@ export function ConfigPage() {
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database'>('config');
 
 
   const generateEmbedCode = () => {
     const baseUrl = window.location.origin;
     return `<script type="text/javascript" src="${baseUrl}/widget.js"></script>
 <script>
-  addVezloChatWidget('${config.uuid}', '${baseUrl}');
+  // Optional: Provide user context for database filtering
+  var userContext = {
+    user_uuid: 'CURRENT_USER_UUID',           // Replace with actual user UUID
+    company_uuid: 'CURRENT_COMPANY_UUID',     // Replace with actual company UUID
+    // Optional: Include numeric IDs if your database uses them
+    user_id: 123,                             // Replace with actual user ID
+    company_id: 456,                          // Replace with actual company ID
+  };
+
+  // Initialize widget with user context
+  addVezloChatWidget('${config.uuid}', '${baseUrl}', {
+    userContext: userContext
+  });
 </script>`;
   };
 
@@ -125,11 +138,18 @@ export function ConfigPage() {
                   icon={BarChart3} 
                   label="Analytics" 
                 />
+                <TabButton 
+                  id="database" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={Database} 
+                  label="Database Tools" 
+                />
               </nav>
             </div>
 
             {/* Tab Content */}
-            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' ? '' : 'p-6'}>
+            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' || activeTab === 'database' ? '' : 'p-6'}>
               {activeTab === 'config' && (
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Configuration Form */}
@@ -305,6 +325,10 @@ export function ConfigPage() {
 
               {activeTab === 'analytics' && (
                 <AnalyticsTab />
+              )}
+
+              {activeTab === 'database' && (
+                <DatabaseToolsTab />
               )}
 
               {activeTab === 'embed' && (

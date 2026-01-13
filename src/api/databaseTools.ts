@@ -6,7 +6,7 @@
 const DEFAULT_API_BASE_URL = import.meta.env.VITE_ASSISTANT_SERVER_URL || 'http://localhost:3000';
 
 export interface DatabaseConfig {
-  id: string;
+  uuid: string;
   company_id: number;
   enabled: boolean;
   created_at: string;
@@ -14,8 +14,7 @@ export interface DatabaseConfig {
 }
 
 export interface DatabaseTool {
-  id: string;
-  config_id: string;
+  uuid: string;
   table_name: string;
   tool_name: string;
   tool_description: string;

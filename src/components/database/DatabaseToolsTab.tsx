@@ -84,7 +84,7 @@ export function DatabaseToolsTab() {
         setConfig(configResult.config);
         
         if (configResult.config.enabled) {
-          const tablesResult = await databaseToolsApi.getTablesFromConfig(token, configResult.config.id);
+          const tablesResult = await databaseToolsApi.getTablesFromConfig(token, configResult.config.uuid);
           if (tablesResult.success && tablesResult.tables) {
             setTables(tablesResult.tables);
           }
@@ -143,7 +143,7 @@ export function DatabaseToolsTab() {
 
     try {
       const result = config
-        ? await databaseToolsApi.updateDatabaseConfig(token, config.id, dbUrl, dbKey, true)
+        ? await databaseToolsApi.updateDatabaseConfig(token, config.uuid, dbUrl, dbKey, true)
         : await databaseToolsApi.createDatabaseConfig(token, dbUrl, dbKey);
 
       if (result.success && result.config) {
@@ -152,7 +152,7 @@ export function DatabaseToolsTab() {
         if (validationResult?.tables) {
           setTables(validationResult.tables);
         } else {
-          const tablesResult = await databaseToolsApi.getTablesFromConfig(token, result.config.id);
+          const tablesResult = await databaseToolsApi.getTablesFromConfig(token, result.config.uuid);
           if (tablesResult.success && tablesResult.tables) {
             setTables(tablesResult.tables);
           }
@@ -190,7 +190,7 @@ export function DatabaseToolsTab() {
     setError(null);
 
     try {
-      const result = await databaseToolsApi.deleteDatabaseConfig(token, config.id);
+      const result = await databaseToolsApi.deleteDatabaseConfig(token, config.uuid);
       
       if (result.success) {
         setConfig(null);
@@ -257,7 +257,7 @@ export function DatabaseToolsTab() {
     setError(null);
 
     try {
-      const result = await databaseToolsApi.introspectTableColumns(token, config.id, tableName);
+      const result = await databaseToolsApi.introspectTableColumns(token, config.uuid, tableName);
       
       if (result.success && result.schema) {
         const schema = result.schema.columns;
@@ -340,7 +340,7 @@ export function DatabaseToolsTab() {
           user_context_key: tableConfig.userContextKey || undefined,
         };
 
-        return databaseToolsApi.createDatabaseTool(token, config.id, toolData);
+        return databaseToolsApi.createDatabaseTool(token, config.uuid, toolData);
       });
 
       const results = await Promise.all(toolPromises.filter(Boolean));
@@ -408,7 +408,7 @@ export function DatabaseToolsTab() {
 
     setLoadingSchema(true);
     try {
-      const result = await databaseToolsApi.introspectTableColumns(token, config.id, tableName);
+      const result = await databaseToolsApi.introspectTableColumns(token, config.uuid, tableName);
       
       if (result.success && result.schema) {
         const schema = result.schema.columns;
@@ -481,8 +481,8 @@ export function DatabaseToolsTab() {
       };
 
       const result = editingTool
-        ? await databaseToolsApi.updateDatabaseTool(token, editingTool.id, toolData)
-        : await databaseToolsApi.createDatabaseTool(token, config.id, toolData);
+        ? await databaseToolsApi.updateDatabaseTool(token, editingTool.uuid, toolData)
+        : await databaseToolsApi.createDatabaseTool(token, config.uuid, toolData);
 
       if (result.success) {
         const toolsResult = await databaseToolsApi.getDatabaseTools(token);
@@ -516,7 +516,7 @@ export function DatabaseToolsTab() {
       const result = await databaseToolsApi.deleteDatabaseTool(token, toolId);
       
       if (result.success) {
-        setTools(prev => prev.filter(t => t.id !== toolId));
+        setTools(prev => prev.filter(t => t.uuid !== toolId));
         toast.success('Tool deleted', { duration: 5000 });
       } else {
         setError(result.error || 'Failed to delete tool');

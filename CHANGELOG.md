@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.1] - 2026-01-13
+
+### Fixed
+- Database tools UI now uses `uuid` instead of integer `id` for all API calls
+- Type definitions updated to reflect UUID-based identifiers
+
 ## [1.9.0] - 2026-01-12
 
 ### Added

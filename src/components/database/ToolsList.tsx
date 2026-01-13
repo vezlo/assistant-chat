@@ -79,7 +79,7 @@ export function ToolsList({
 
                 return (
                   <div
-                    key={tool.id}
+                    key={tool.uuid}
                     className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-emerald-300 transition-colors cursor-pointer"
                   >
                     <div className="flex-1">
@@ -110,7 +110,7 @@ export function ToolsList({
                         <Edit2 className="w-4 h-4 pointer-events-none" />
                       </button>
                       <button
-                        onClick={() => onDeleteTool(tool.id)}
+                        onClick={() => onDeleteTool(tool.uuid)}
                         className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         title="Delete this tool permanently"
                       >

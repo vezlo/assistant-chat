@@ -40,7 +40,6 @@
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.3",
-    "rehype-raw": "^7.0.0",
     "tailwindcss": "^4.1.14"
   },
   "devDependencies": {

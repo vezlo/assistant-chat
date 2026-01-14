@@ -102,6 +102,7 @@ npm run dev
 - ✅ **Human agent support** (conversation management, agent handoff)
 - ✅ **Realtime updates** (live message synchronization)
 - ✅ **Database tools** (connect external databases for natural language queries - [docs](./docs/DATABASE_TOOLS.md))
+- ✅ **AI Settings** (customize AI behavior, model, temperature, and prompts per company)
 - ✅ Docker support
 - ✅ Vercel deployment
 

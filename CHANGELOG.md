@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2026-01-13
+
+### Added
+- **AI Settings Tab**: Configure AI behavior with 5 customizable prompts (personality, response guidelines, interaction etiquette, scope of assistance, formatting)
+- AI model selector (GPT-4o Mini, GPT-4o, GPT-4 Turbo, GPT-3.5 Turbo)
+- Temperature control slider (0-1 range)
+- Markdown editor with preview/edit toggle for all prompt fields
+- Sparkles icon for AI Settings tab (positioned after Playground)
+- Real-time AI settings sync with backend
+
+### Changed
+- Improved AI Settings UI spacing and typography consistency
+- Enhanced visual hierarchy with larger headings and better margins
+
 ## [1.9.1] - 2026-01-13
 
 ### Fixed

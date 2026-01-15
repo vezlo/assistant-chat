@@ -13,9 +13,11 @@ import { subscribeToConversations, type MessageCreatedPayload, type Conversation
 import { ConversationList } from '@/components/conversations/ConversationList';
 import { ConversationChat } from '@/components/conversations/ConversationChat';
 import { requestNotificationPermission, showNotification, truncateMessage } from '@/services/notificationService';
+import { useIsAdmin } from '@/utils/useIsAdmin';
 
 export function ConversationsTab() {
   const { token, user } = useApp();
+  const isAdmin = useIsAdmin();
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<ConversationListItem | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -528,6 +530,7 @@ export function ConversationsTab() {
         onJoinConversation={handleJoinConversation}
         onCloseConversation={handleCloseConversation}
         onArchiveConversation={handleArchiveConversation}
+        isAdmin={isAdmin}
       />
     </div>
   );

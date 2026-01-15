@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layouts/MainLayout';
+import { useIsAdmin } from '@/utils/useIsAdmin';
+import { Lock } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { getApiKeyStatus, generateApiKey, type ApiKeyResponse } from '@/api/apiKeys';
 import toast, { Toaster } from 'react-hot-toast';
@@ -7,6 +9,7 @@ import { Key, Copy, RefreshCw, Info, Eye, EyeOff, Check } from 'lucide-react';
 
 export function ApiKeysPage() {
   const { token } = useApp();
+  const isAdmin = useIsAdmin();
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [keyExists, setKeyExists] = useState(false);
@@ -69,6 +72,20 @@ export function ApiKeysPage() {
     if (key.length <= 8) return '•'.repeat(key.length);
     return key.substring(0, 4) + '•'.repeat(key.length - 8) + key.substring(key.length - 4);
   };
+
+  if (!isAdmin) {
+    return (
+      <MainLayout>
+        <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Restricted</h2>
+            <p className="text-gray-600">Only administrators can access API keys management.</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

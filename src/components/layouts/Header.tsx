@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, Building2, User, BookOpen, LifeBuoy, Sparkles } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { useApp } from '@/contexts/AppContext';
+import { useIsAdmin } from '@/utils/useIsAdmin';
 
 export function Header() {
   const navigate = useNavigate();
   const { user, workspace, activeSection, setActiveSection, logout } = useApp();
+  const isAdmin = useIsAdmin();
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -16,10 +18,10 @@ export function Header() {
 
   const primaryNav = [
     { label: 'Chat Assistant', href: '/config', key: 'widget' },
-    { label: 'Team', key: 'team', href: '/team' },
-    { label: 'Integrations', key: 'integrations', href: '/integrations' },
-    { label: 'API Keys', key: 'api-keys', href: '/api-keys' },
-    { label: 'Settings', key: 'settings', href: '/settings' },
+    ...(isAdmin ? [{ label: 'Team', key: 'team', href: '/team' }] : []),
+    ...(isAdmin ? [{ label: 'Integrations', key: 'integrations', href: '/integrations' }] : []),
+    ...(isAdmin ? [{ label: 'API Keys', key: 'api-keys', href: '/api-keys' }] : []),
+    ...(isAdmin ? [{ label: 'Settings', key: 'settings', href: '/settings' }] : []),
   ];
 
   // Update active section based on current route
@@ -27,8 +29,26 @@ export function Header() {
     const currentNav = primaryNav.find((nav) => nav.href === location.pathname);
     if (currentNav) {
       setActiveSection(currentNav.key);
+    } else {
+      // Clear active section when on routes not in primaryNav (e.g., /account-settings)
+      setActiveSection('');
     }
-  }, [location.pathname]);
+  }, [location.pathname, setActiveSection]);
+
+  // Get breadcrumb label for current route
+  const getBreadcrumbLabel = (): string | null => {
+    const currentNav = primaryNav.find((nav) => nav.href === location.pathname);
+    if (currentNav) {
+      return currentNav.label;
+    }
+    // Handle routes not in primaryNav
+    if (location.pathname === '/account-settings') {
+      return 'Account Settings';
+    }
+    return null;
+  };
+
+  const breadcrumbLabel = getBreadcrumbLabel();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -124,6 +144,14 @@ export function Header() {
                 </button>
               </div>
             )}
+            {breadcrumbLabel && (
+              <>
+                <div className="text-gray-300 text-lg font-light">/</div>
+                <span className="text-[15px] font-semibold text-gray-900 leading-tight mt-0.5">
+                  {breadcrumbLabel}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -172,7 +200,13 @@ export function Header() {
                     <p className="text-sm font-semibold text-gray-900">{user?.name || 'Admin'}</p>
                     <p className="text-xs text-gray-500">{user?.email || 'admin@vezlo.org'}</p>
                   </div>
-                  <button className="w-full flex items-center gap-2 text-left text-sm text-gray-700 hover:bg-emerald-100 rounded-lg px-2 py-1.5 transition-colors cursor-pointer">
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      navigate('/account-settings');
+                    }}
+                    className="w-full flex items-center gap-2 text-left text-sm text-gray-700 hover:bg-emerald-100 rounded-lg px-2 py-1.5 transition-colors cursor-pointer"
+                  >
                     <User className="w-4 h-4 text-gray-500" />
                     Account Settings
                   </button>

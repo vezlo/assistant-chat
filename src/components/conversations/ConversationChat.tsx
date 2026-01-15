@@ -19,6 +19,7 @@ interface ConversationChatProps {
   onJoinConversation: () => void;
   onCloseConversation: () => void;
   onArchiveConversation: () => void;
+  isAdmin: boolean;
 }
 
 function groupMessagesByDate(messages: ConversationMessage[]) {
@@ -53,6 +54,7 @@ export function ConversationChat({
   onJoinConversation,
   onCloseConversation,
   onArchiveConversation,
+  isAdmin,
 }: ConversationChatProps) {
   const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -101,40 +103,44 @@ export function ConversationChat({
             </span>
           </div>
         </div>
-        {!selectedConversation.joined_at ? (
-          <button
-            onClick={onJoinConversation}
-            disabled={isJoining}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            {isJoining ? 'Joining...' : 'Join Conversation'}
-          </button>
-        ) : selectedConversation.archived_at ? (
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
-          >
-            Archived
-          </button>
-        ) : selectedConversation.closed_at ? (
-          <button
-            onClick={onArchiveConversation}
-            disabled={isArchiving}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
-          >
-            <LogIn className="w-4 h-4 rotate-180" />
-            {isArchiving ? 'Archiving...' : 'Archive Conversation'}
-          </button>
-        ) : (
-          <button
-            onClick={onCloseConversation}
-            disabled={isClosing}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
-          >
-            <LogIn className="w-4 h-4 rotate-180" />
-            {isClosing ? 'Closing...' : 'Close Conversation'}
-          </button>
+        {isAdmin && (
+          <>
+            {!selectedConversation.joined_at ? (
+              <button
+                onClick={onJoinConversation}
+                disabled={isJoining}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm rounded-lg hover:from-emerald-700 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              >
+                <LogIn className="w-4 h-4" />
+                {isJoining ? 'Joining...' : 'Join Conversation'}
+              </button>
+            ) : selectedConversation.archived_at ? (
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm rounded-lg font-medium cursor-not-allowed opacity-80"
+              >
+                Archived
+              </button>
+            ) : selectedConversation.closed_at ? (
+              <button
+                onClick={onArchiveConversation}
+                disabled={isArchiving}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              >
+                <LogIn className="w-4 h-4 rotate-180" />
+                {isArchiving ? 'Archiving...' : 'Archive Conversation'}
+              </button>
+            ) : (
+              <button
+                onClick={onCloseConversation}
+                disabled={isClosing}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              >
+                <LogIn className="w-4 h-4 rotate-180" />
+                {isClosing ? 'Closing...' : 'Close Conversation'}
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -282,57 +288,59 @@ export function ConversationChat({
         )}
       </div>
 
-      {/* Message Editor */}
-      <div className="bg-white border-t border-gray-100 shadow-lg px-4 py-3">
-        <div
-          className={`relative rounded-xl border overflow-hidden ${
-            selectedConversation.joined_at && !selectedConversation.closed_at
-              ? 'border-emerald-300 bg-white'
-              : 'border-emerald-300 bg-gray-100'
-          }`}
-        >
-          <textarea
-            value={messageContent}
-            onChange={(e) => onMessageChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && selectedConversation.joined_at && !selectedConversation.closed_at && !isSending) {
-                e.preventDefault();
-                onSendMessage();
-              }
-            }}
-            disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending}
-            placeholder={
-              selectedConversation.closed_at
-                ? 'Conversation is closed'
-                : selectedConversation.joined_at
-                ? 'Type your message...'
-                : 'Join the conversation to send messages...'
-            }
-            className={`w-full block bg-transparent px-4 py-3 pr-12 text-sm resize-none focus:outline-none placeholder:text-gray-400 border-none ${
-              selectedConversation.joined_at && !selectedConversation.closed_at ? 'text-gray-900 cursor-text' : 'text-gray-400 cursor-not-allowed'
+      {/* Message Editor - Admin Only */}
+      {isAdmin && (
+        <div className="bg-white border-t border-gray-100 shadow-lg px-4 py-3">
+          <div
+            className={`relative rounded-xl border overflow-hidden ${
+              selectedConversation.joined_at && !selectedConversation.closed_at
+                ? 'border-emerald-300 bg-white'
+                : 'border-emerald-300 bg-gray-100'
             }`}
-            rows={3}
-          />
-          <button
-            onClick={onSendMessage}
-            disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending || !messageContent.trim()}
-            className={`absolute right-3 bottom-3 p-2 rounded-lg border ${
-              selectedConversation.joined_at && !selectedConversation.closed_at && !isSending && messageContent.trim()
-                ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 cursor-pointer'
-                : 'border-emerald-300 bg-white text-emerald-300 cursor-not-allowed'
-            }`}
-            title={
-              selectedConversation.closed_at
-                ? 'Conversation is closed'
-                : selectedConversation.joined_at
-                ? 'Send message'
-                : 'Join the conversation to enable messaging'
-            }
           >
-            <Send className="w-4 h-4" />
-          </button>
+            <textarea
+              value={messageContent}
+              onChange={(e) => onMessageChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && selectedConversation.joined_at && !selectedConversation.closed_at && !isSending) {
+                  e.preventDefault();
+                  onSendMessage();
+                }
+              }}
+              disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending}
+              placeholder={
+                selectedConversation.closed_at
+                  ? 'Conversation is closed'
+                  : selectedConversation.joined_at
+                  ? 'Type your message...'
+                  : 'Join the conversation to send messages...'
+              }
+              className={`w-full block bg-transparent px-4 py-3 pr-12 text-sm resize-none focus:outline-none placeholder:text-gray-400 border-none ${
+                selectedConversation.joined_at && !selectedConversation.closed_at ? 'text-gray-900 cursor-text' : 'text-gray-400 cursor-not-allowed'
+              }`}
+              rows={3}
+            />
+            <button
+              onClick={onSendMessage}
+              disabled={!selectedConversation.joined_at || !!selectedConversation.closed_at || isSending || !messageContent.trim()}
+              className={`absolute right-3 bottom-3 p-2 rounded-lg border ${
+                selectedConversation.joined_at && !selectedConversation.closed_at && !isSending && messageContent.trim()
+                  ? 'border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 hover:border-emerald-600 cursor-pointer'
+                  : 'border-emerald-300 bg-white text-emerald-300 cursor-not-allowed'
+              }`}
+              title={
+                selectedConversation.closed_at
+                  ? 'Conversation is closed'
+                  : selectedConversation.joined_at
+                  ? 'Send message'
+                  : 'Join the conversation to enable messaging'
+              }
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

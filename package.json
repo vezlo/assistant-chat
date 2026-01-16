@@ -1,6 +1,6 @@
 {
   "name": "@vezlo/assistant-chat",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "React component library for AI-powered chat widgets with RAG knowledge base integration, realtime updates, and human agent support",
   "type": "module",
   "main": "lib/index.js",

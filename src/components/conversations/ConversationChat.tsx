@@ -250,7 +250,9 @@ export function ConversationChat({
                                   msg.type === 'agent' ? 'text-blue-700' : 'text-emerald-700'
                                 }`}
                               >
-                                {msg.type === 'agent' ? 'Agent' : 'Assistant'}
+                                {msg.type === 'agent' 
+                                  ? (msg.author_name || 'Agent')
+                                  : 'Assistant'}
                               </span>
                             </div>
                             <div

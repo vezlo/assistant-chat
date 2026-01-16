@@ -467,6 +467,7 @@ export function ConversationsTab() {
       content: trimmed,
       type: 'agent',
       author_id: user?.id ? Number(user.id) : null,
+      author_name: user?.name || null,
       created_at: new Date().toISOString(),
       pending: true,
     };

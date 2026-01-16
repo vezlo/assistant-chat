@@ -39,6 +39,7 @@ export interface MessageCreatedPayload {
     content: string;
     type: 'user' | 'assistant' | 'agent' | 'system';
     author_id: number | null;
+    author_name: string | null;
     created_at: string;
   };
   conversation_update: {

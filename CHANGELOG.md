@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.10.0] - 2026-01-13
+## [1.10.0] - 2026-01-15
 
 ### Added
 - **AI Settings Tab**: Configure AI behavior with 5 customizable prompts (personality, response guidelines, interaction etiquette, scope of assistance, formatting)

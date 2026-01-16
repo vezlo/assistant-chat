@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2026-01-15
+
+### Added
+- **API Keys Management**: Admin-only page for generating and managing company API keys
+- **Team Management**: Create, update, delete team members with role-based access control
+- **Account Settings**: Self-service profile management page for updating name and password
+- Breadcrumb navigation in header showing current page
+- Role-based navigation: Admin-only pages hidden from non-admin users
+
+### Changed
+- Removed 'viewer' role from system (only 'admin' and 'user' roles supported)
+- Primary navigation items conditionally rendered based on admin status
+
 ## [1.10.0] - 2026-01-15
 
 ### Added

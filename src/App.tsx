@@ -9,6 +9,7 @@ import { TeamPage } from '@/routes/TeamPage';
 import { IntegrationsPage } from '@/routes/IntegrationsPage';
 import { ApiKeysPage } from '@/routes/ApiKeysPage';
 import { SettingsPage } from '@/routes/SettingsPage';
+import { AccountSettingsPage } from '@/routes/AccountSettingsPage';
 
 function App() {
   return (
@@ -65,6 +66,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account-settings"
+            element={
+              <ProtectedRoute>
+                <AccountSettingsPage />
               </ProtectedRoute>
             }
           />

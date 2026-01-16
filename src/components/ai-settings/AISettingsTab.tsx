@@ -3,6 +3,7 @@ import { getAISettings, updateAISettings, type AISettings } from '../../api/aiSe
 import { useApp } from '@/contexts/AppContext';
 import toast, { Toaster } from 'react-hot-toast';
 import { MarkdownEditor } from './MarkdownEditor';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 const AI_MODELS = [
   { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Recommended)' },
@@ -55,9 +56,7 @@ export const AISettingsTab: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading AI settings...</div>
-      </div>
+      <LoadingState message="Loading AI settings..." className="h-64" />
     );
   }
 

@@ -9,6 +9,7 @@ import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
 import { DatabaseToolsTab } from '@/components/database/DatabaseToolsTab';
 import { AISettingsTab } from '@/components/ai-settings/AISettingsTab';
+import { useIsAdmin } from '@/utils/useIsAdmin';
 
 interface TabButtonProps {
   id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database' | 'ai-settings';
@@ -41,6 +42,7 @@ function TabButton({ id, activeTab, onClick, icon: Icon, label }: TabButtonProps
 }
 
 export function ConfigPage() {
+  const isAdmin = useIsAdmin();
   const [config, setConfig] = useState<WidgetConfig>({
     uuid: generateId(),
     theme: 'light',
@@ -118,13 +120,15 @@ export function ConfigPage() {
                   icon={Play} 
                   label="Playground" 
                 />
-                <TabButton 
-                  id="ai-settings" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={Sparkles} 
-                  label="AI Settings" 
-                />
+                {isAdmin && (
+                  <TabButton 
+                    id="ai-settings" 
+                    activeTab={activeTab} 
+                    onClick={setActiveTab} 
+                    icon={Sparkles} 
+                    label="AI Settings" 
+                  />
+                )}
                 <TabButton 
                   id="embed" 
                   activeTab={activeTab} 
@@ -146,13 +150,15 @@ export function ConfigPage() {
                   icon={BarChart3} 
                   label="Analytics" 
                 />
-                <TabButton 
-                  id="database" 
-                  activeTab={activeTab} 
-                  onClick={setActiveTab} 
-                  icon={Database} 
-                  label="Database Tools" 
-                />
+                {isAdmin && (
+                  <TabButton 
+                    id="database" 
+                    activeTab={activeTab} 
+                    onClick={setActiveTab} 
+                    icon={Database} 
+                    label="Database Tools" 
+                  />
+                )}
               </nav>
             </div>
 
@@ -168,7 +174,8 @@ export function ConfigPage() {
                         type="text"
                         value={config.title}
                         onChange={(e) => setConfig({ ...config, title: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!isAdmin}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -178,7 +185,8 @@ export function ConfigPage() {
                         type="text"
                         value={config.subtitle}
                         onChange={(e) => setConfig({ ...config, subtitle: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!isAdmin}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -187,7 +195,8 @@ export function ConfigPage() {
                       <textarea
                         value={config.welcomeMessage}
                         onChange={(e) => setConfig({ ...config, welcomeMessage: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!isAdmin}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                         rows={3}
                       />
                     </div>
@@ -199,13 +208,15 @@ export function ConfigPage() {
                           type="color"
                           value={themeColor}
                           onChange={(e) => setThemeColor(e.target.value)}
-                          className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                          disabled={!isAdmin}
+                          className="w-12 h-10 border border-gray-300 rounded cursor-pointer disabled:cursor-not-allowed"
                         />
                         <input
                           type="text"
                           value={themeColor}
                           onChange={(e) => setThemeColor(e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={!isAdmin}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                           placeholder="#2563eb"
                         />
                       </div>

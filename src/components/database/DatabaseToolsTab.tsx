@@ -8,6 +8,7 @@ import { DatabaseConfigForm } from './DatabaseConfigForm';
 import { TableSelector } from './TableSelector';
 import { ToolsList } from './ToolsList';
 import { ToolModal } from './ToolModal';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 type View = 'loading' | 'setup' | 'select-tables' | 'configure-tools' | 'configured';
 
@@ -535,10 +536,7 @@ export function DatabaseToolsTab() {
       <div>
         {/* Loading View */}
         {view === 'loading' && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mr-3" />
-            <span className="text-gray-600">Loading...</span>
-          </div>
+          <LoadingState message="Loading database tools..." />
         )}
 
         {/* Setup View */}

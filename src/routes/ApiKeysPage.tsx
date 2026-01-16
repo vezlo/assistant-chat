@@ -6,6 +6,7 @@ import { useApp } from '@/contexts/AppContext';
 import { getApiKeyStatus, generateApiKey, type ApiKeyResponse } from '@/api/apiKeys';
 import toast, { Toaster } from 'react-hot-toast';
 import { Key, Copy, RefreshCw, Info, Eye, EyeOff, Check } from 'lucide-react';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 export function ApiKeysPage() {
   const { token } = useApp();
@@ -97,10 +98,8 @@ export function ApiKeysPage() {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12">
-            <div className="flex items-center justify-center">
-              <div className="text-gray-500">Loading...</div>
-            </div>
+          <div className="bg-white rounded-lg border border-gray-200">
+            <LoadingState message="Loading API key..." />
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200">

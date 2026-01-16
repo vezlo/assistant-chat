@@ -4,6 +4,7 @@ import { useApp } from '@/contexts/AppContext';
 import { getAccountProfile, updateAccountProfile, type AccountProfile } from '@/api/account';
 import toast, { Toaster } from 'react-hot-toast';
 import { User, Mail, Shield, Eye, EyeOff, Loader2, Save } from 'lucide-react';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 export function AccountSettingsPage() {
   const { user, token, setUser } = useApp();
@@ -118,9 +119,8 @@ export function AccountSettingsPage() {
     return (
       <MainLayout>
         <div className="max-w-[1400px] mx-auto px-12 py-8 pb-16">
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-            <p className="text-gray-500">Loading profile...</p>
+          <div className="bg-white rounded-lg border border-gray-200">
+            <LoadingState message="Loading profile..." />
           </div>
         </div>
       </MainLayout>

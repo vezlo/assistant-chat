@@ -7,7 +7,8 @@ import { InviteFormModal } from '@/components/team/InviteFormModal';
 import { EditFormModal } from '@/components/team/EditFormModal';
 import { TeamMembersTable } from '@/components/team/TeamMembersTable';
 import toast, { Toaster } from 'react-hot-toast';
-import { Users, UserPlus, Search, Loader2 } from 'lucide-react';
+import { Users, UserPlus, Search } from 'lucide-react';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 export function TeamPage() {
   const { user, token } = useApp();
@@ -167,10 +168,7 @@ export function TeamPage() {
 
           {/* Team Members List */}
           {loading ? (
-            <div className="p-12 text-center">
-              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-              <p className="text-gray-500">Loading team members...</p>
-            </div>
+            <LoadingState message="Loading team members..." />
           ) : members.length === 0 ? (
             <div className="p-12 text-center">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />

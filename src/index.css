@@ -53,3 +53,25 @@ pre::-webkit-scrollbar-thumb:hover {
 
 /* Remove global transition - let components define their own */
 /* Enhanced button hover effects - removed since buttons define their own transitions */
+
+/* Custom slider styling for AI Settings */
+.slider-with-marks::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #059669;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider-with-marks::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #059669;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

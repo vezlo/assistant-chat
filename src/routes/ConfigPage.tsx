@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, Database, type LucideIcon } from 'lucide-react';
+import { Copy, Check, Settings, Code2, Play, Bot, ThumbsUp, ThumbsDown, MessageSquare, BarChart3, Database, Sparkles, type LucideIcon } from 'lucide-react';
 import type { WidgetConfig } from '@/types';
 import { generateId } from '@/utils';
 import { VezloFooter } from '@/components/ui/VezloFooter';
@@ -8,11 +8,12 @@ import { MainLayout } from '@/components/layouts/MainLayout';
 import { ConversationsTab } from '@/components/conversations/ConversationsTab';
 import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
 import { DatabaseToolsTab } from '@/components/database/DatabaseToolsTab';
+import { AISettingsTab } from '@/components/ai-settings/AISettingsTab';
 
 interface TabButtonProps {
-  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database';
+  id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database' | 'ai-settings';
   activeTab: string;
-  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database') => void;
+  onClick: (id: 'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database' | 'ai-settings') => void;
   icon: LucideIcon;
   label: string;
 }
@@ -56,7 +57,7 @@ export function ConfigPage() {
 
   const [themeColor, setThemeColor] = useState<string>(THEME.primary.hex);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'playground' | 'embed' | 'conversations' | 'analytics' | 'database' | 'ai-settings'>('config');
 
 
   const generateEmbedCode = () => {
@@ -118,6 +119,13 @@ export function ConfigPage() {
                   label="Playground" 
                 />
                 <TabButton 
+                  id="ai-settings" 
+                  activeTab={activeTab} 
+                  onClick={setActiveTab} 
+                  icon={Sparkles} 
+                  label="AI Settings" 
+                />
+                <TabButton 
                   id="embed" 
                   activeTab={activeTab} 
                   onClick={setActiveTab} 
@@ -149,7 +157,7 @@ export function ConfigPage() {
             </div>
 
             {/* Tab Content */}
-            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' || activeTab === 'database' ? '' : 'p-6'}>
+            <div className={activeTab === 'playground' || activeTab === 'conversations' || activeTab === 'analytics' || activeTab === 'database' || activeTab === 'ai-settings' ? '' : 'p-6'}>
               {activeTab === 'config' && (
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Configuration Form */}
@@ -329,6 +337,10 @@ export function ConfigPage() {
 
               {activeTab === 'database' && (
                 <DatabaseToolsTab />
+              )}
+
+              {activeTab === 'ai-settings' && (
+                <AISettingsTab />
               )}
 
               {activeTab === 'embed' && (
